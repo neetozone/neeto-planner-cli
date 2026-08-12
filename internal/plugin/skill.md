@@ -129,6 +129,24 @@ stderr. Common errors the agent should expect:
 
 ## Product-specific commands
 
-This skeleton CLI does not yet ship product-specific resource commands.
-Run `neetoplanner commands` to see what is currently available, and
-refer to the CLI's own docs for the full command reference once it grows.
+The resource commands are registered with their final names, flags and help
+text, but they are not wired to the API yet — each exits non-zero with a
+message naming the endpoint it waits on. Do not treat those failures as bugs
+or try to work around them.
+
+```
+neetoplanner projects list
+neetoplanner lists list [--project <p>]
+neetoplanner todos list [--project <p>] [--list <l>]
+neetoplanner todos show <id>
+neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
+neetoplanner todos update <id> [--title ...]
+neetoplanner todos done <id>
+neetoplanner config set default-project <p>
+```
+
+`--project` takes a name or an ID, resolved as: `--project` flag, then
+`NEETOPLANNER_PROJECT`, then the per-subdomain default from
+`neetoplanner config set default-project`.
+
+Run `neetoplanner commands` for the current machine-readable catalog.

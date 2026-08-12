@@ -2,6 +2,30 @@
 
 A command-line interface for NeetoPlanner.
 
+> **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
+> `completion` and `setup` work today. The `projects`, `lists` and `todos`
+> commands are registered with their final flags and help text, but each one
+> exits with a message naming the endpoint it is waiting on — the NeetoPlanner
+> external API is still being built. Track
+> [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
+
+## Command reference
+
+```
+neetoplanner projects list
+neetoplanner lists list [--project <p>]
+neetoplanner todos list [--project <p>] [--list <l>]
+neetoplanner todos show <id>
+neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
+neetoplanner todos update <id> [--title ...]
+neetoplanner todos done <id>
+neetoplanner config set default-project <p>
+```
+
+`--project` accepts a project name or ID. Commands resolve it in this order:
+the `--project` flag, then `NEETOPLANNER_PROJECT`, then the default saved per
+subdomain by `neetoplanner config set default-project`.
+
 ## Installation
 
 ### macOS / Linux

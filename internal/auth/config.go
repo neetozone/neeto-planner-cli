@@ -32,6 +32,11 @@ func configPath() (string, error) {
 	return filepath.Join(home, configDir), nil
 }
 
+// ConfigDir returns the directory holding all persisted CLI state.
+func ConfigDir() (string, error) {
+	return configPath()
+}
+
 func authFilePath() (string, error) {
 	dir, err := configPath()
 	if err != nil {
