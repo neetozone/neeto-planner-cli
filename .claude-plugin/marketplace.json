@@ -1,0 +1,14 @@
+{
+  "name": "neetoplanner",
+  "owner": {
+    "name": "BigBinary",
+    "email": "support@bigbinary.com"
+  },
+  "plugins": [
+    {
+      "name": "neetoplanner",
+      "source": "./",
+      "description": "NeetoPlanner CLI"
+    }
+  ]
+}
