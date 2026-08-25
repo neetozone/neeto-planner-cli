@@ -72,3 +72,8 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 	}
 	return result, nil
 }
+
+func getBoolFlag(cmd *cobra.Command, name string) bool {
+	val, _ := cmd.Flags().GetBool(name)
+	return val
+}

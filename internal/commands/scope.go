@@ -1,11 +1,16 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/neetozone/neeto-planner-cli/internal/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
+	"github.com/neetozone/neeto-planner-cli/internal/output"
+	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +33,7 @@ func pickProject(flagValue, envValue, configValue string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf(
-		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <name-or-id>",
+		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <name-or-sid>",
 		projectEnvVar,
 	)
 }
@@ -43,9 +48,7 @@ func activeSubdomain(cmd *cobra.Command) (string, error) {
 	return creds.Subdomain, nil
 }
 
-// resolveProject returns the project name or ID a command should act on. The
-// name-to-ID lookup lands with the projects endpoint; until then the raw value
-// is passed through.
+// resolveProject returns the SID a command should act on
 func resolveProject(cmd *cobra.Command) (string, error) {
 	flagValue, _ := cmd.Flags().GetString("project")
 	envValue := os.Getenv(projectEnvVar)
@@ -63,7 +66,62 @@ func resolveProject(cmd *cobra.Command) (string, error) {
 		configValue = store.For(subdomain).DefaultProject
 	}
 
-	return pickProject(flagValue, envValue, configValue)
+	projectValue, err := pickProject(flagValue, envValue, configValue)
+	if err != nil {
+		return "", err
+	}
+
+	return resolveProjectSid(cmd, projectValue)
+}
+
+func resolveProjectSid(cmd *cobra.Command, projectValue string) (string, error) {
+	c, err := getClient(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	params := url.Values{}
+	params.Add("kind", "all")
+
+	data, err := c.Get("/projects", params)
+	if err != nil {
+		return "", err
+	}
+
+	var parsed map[string]json.RawMessage
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		return "", err
+	}
+
+	projectItems, hasItems := parsed["projects"]
+	if !hasItems {
+		output.PrintMessage("Projects not found (404)")
+	}
+
+	var parsedItems []map[string]interface{}
+	if err := json.Unmarshal(projectItems, &parsedItems); err != nil {
+		return "", err
+	}
+
+	names := make([]string, len(parsedItems))
+	for i, elem := range parsedItems {
+		names[i], _ = elem["name"].(string)
+	}
+
+	for _, elem := range parsedItems {
+		sid, _ := elem["sid"].(string)
+		if strings.EqualFold(sid, projectValue) {
+			return sid, nil
+		}
+	}
+
+	matches := fuzzy.Find(projectValue, names)
+	if len(matches) == 0 {
+		return "", fmt.Errorf("no project matching %q found", projectValue)
+	}
+
+	best := parsedItems[matches[0].Index]
+	return best["sid"].(string), nil
 }
 
 func addProjectFlag(cmd *cobra.Command) {

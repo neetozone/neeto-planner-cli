@@ -48,11 +48,6 @@ var projectsListCmd = &cobra.Command{
 	},
 }
 
-func getBoolFlag(cmd *cobra.Command, name string) bool {
-	val, _ := cmd.Flags().GetBool(name)
-	return val
-}
-
 func init() {
 	addPaginationFlags(projectsListCmd)
 
