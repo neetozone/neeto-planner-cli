@@ -56,6 +56,7 @@ func init() {
 	projectsListCmd.Flags().Bool("archived", false, "List archived projects")
 	projectsListCmd.Flags().Bool("trashed", false, "List trashed projects")
 	projectsListCmd.Flags().Bool("all", false, "List all projects regardless of kind")
+	projectsListCmd.MarkFlagsMutuallyExclusive("template", "archived", "trashed", "all")
 
 	rootCmd.AddCommand(projectsCmd)
 }
