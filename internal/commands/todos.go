@@ -29,9 +29,9 @@ var todosListCmd = &cobra.Command{
 
 		var kind string
 		switch {
-		case getBoolFlag(cmd, "completed"):
+		case cmd.Flags().Changed("completed"):
 			kind = "completed"
-		case getBoolFlag(cmd, "pending"):
+		case cmd.Flags().Changed("pending"):
 			kind = "pending"
 		default:
 			kind = ""
@@ -72,11 +72,43 @@ var todosCreateCmd = &cobra.Command{
 }
 
 var todosUpdateCmd = &cobra.Command{
-	Use:   "update <id>",
+	Use:   "update <handle>",
 	Short: "Update a todo",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return notImplemented("PUT /todos/:id")
+		c, err := getClient(cmd)
+		if err != nil {
+			return err
+		}
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
+		}
+		handle := args[0]
+
+		todo := map[string]interface{}{}
+		if cmd.Flags().Changed("title") {
+			title, _ := cmd.Flags().GetString("title")
+			todo["name"] = title
+		}
+		if cmd.Flags().Changed("completed") {
+			todo["completed"] = true
+		}
+		if cmd.Flags().Changed("pending") {
+			todo["completed"] = false
+		}
+
+		if len(todo) == 0 {
+			return fmt.Errorf("no fields to update; pass --title, --completed, or --pending")
+		}
+
+		body := map[string]interface{}{"todo": todo}
+		if _, err = c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, handle), body); err != nil {
+			return err
+		}
+
+		fmt.Println("Success!")
+		return nil
 	},
 }
 
@@ -101,10 +133,13 @@ func init() {
 	todosCreateCmd.Flags().String("assignee", "", "Assignee email")
 	todosCreateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
 
+	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")
 	todosUpdateCmd.Flags().String("assignee", "", "Assignee email")
 	todosUpdateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
 	todosUpdateCmd.Flags().Bool("completed", false, "Mark as completed")
+	todosUpdateCmd.Flags().Bool("pending", false, "Mark as pending")
+	todosUpdateCmd.MarkFlagsMutuallyExclusive("pending", "completed")
 
 	todosCmd.AddCommand(todosListCmd)
 	todosCmd.AddCommand(todosShowCmd)
