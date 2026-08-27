@@ -48,22 +48,13 @@ var listsListCmd = &cobra.Command{
 			return err
 		}
 
-		var metadata map[string]interface{}
-		if err := json.Unmarshal(data, &metadata); err != nil {
-			return err
-		}
-
-		project, ok := metadata["project"].(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("broken project data type")
-		}
-
-		fmt.Printf("\nOrganization: %s\n", metadata["organization"])
-		fmt.Printf("Project: %s (%s)\n\n", project["name"], project["sid"])
+		newLine()
+		printOrganizationInformation(data)
+		printProjectInformation(data)
+		newLine()
 		printList(data, "lists", nil)
-		if count, ok := project["lists_count"].(float64); ok {
-			fmt.Printf("\nTotal count: %d\n", int(count))
-		}
+		newLine()
+		printTotalCount(data)
 		return nil
 	},
 }
@@ -96,7 +87,13 @@ var listsShowCmd = &cobra.Command{
 			return err
 		}
 
+		newLine()
+		printOrganizationInformation(data)
+		printProjectInformation(data)
+		newLine()
 		printList(data, "todos", nil)
+		newLine()
+		printTotalCount(data)
 		return nil
 	},
 }

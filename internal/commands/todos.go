@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -44,7 +45,13 @@ var todosListCmd = &cobra.Command{
 			return err
 		}
 
+		newLine()
+		printOrganizationInformation(data)
+		printProjectInformation(data)
+		newLine()
 		printList(data, "todos", nil)
+		newLine()
+		printTotalCount(data)
 		return nil
 	},
 }
@@ -103,11 +110,23 @@ var todosUpdateCmd = &cobra.Command{
 		}
 
 		body := map[string]interface{}{"todo": todo}
-		if _, err = c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, handle), body); err != nil {
+		data, err := c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, handle), body)
+		if err != nil {
 			return err
 		}
 
-		fmt.Println("Success!")
+		var todoResult map[string]json.RawMessage
+		if err := json.Unmarshal(data, &todoResult); err != nil {
+			return err
+		}
+
+		var result map[string]interface{}
+		if err := json.Unmarshal(todoResult["todo"], &result); err != nil {
+			return err
+		}
+
+		fmt.Printf("Name: %s (#%d)\n", result["name"], int(result["handle"].(float64)))
+		fmt.Printf("Completed: %v\n\n", result["completed"])
 		return nil
 	},
 }

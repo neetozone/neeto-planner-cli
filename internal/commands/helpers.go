@@ -77,3 +77,35 @@ func getBoolFlag(cmd *cobra.Command, name string) bool {
 	val, _ := cmd.Flags().GetBool(name)
 	return val
 }
+
+func printOrganizationInformation(data json.RawMessage) {
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return
+	}
+	fmt.Printf("Organization: %s\n", metadata["organization"])
+}
+
+func printProjectInformation(data json.RawMessage) {
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return
+	}
+	if project, ok := metadata["project"].(map[string]interface{}); ok {
+		fmt.Printf("Project: %s (%s)\n", project["name"], project["sid"])
+	}
+}
+
+func printTotalCount(data json.RawMessage) {
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return
+	}
+	if count, ok := metadata["total_count"].(float64); ok {
+		fmt.Printf("Total count: %d\n", int(count))
+	}
+}
+
+func newLine() {
+	fmt.Println()
+}
