@@ -1,6 +1,9 @@
 package commands
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/spf13/cobra"
 )
 
@@ -11,16 +14,38 @@ var todosCmd = &cobra.Command{
 
 var todosListCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List todos in a project or list",
+	Short:   "List todos in a project",
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if _, err := resolveProject(cmd); err != nil {
+		c, err := getClient(cmd)
+		if err != nil {
 			return err
 		}
-		if list, _ := cmd.Flags().GetString("list"); list != "" {
-			return notImplemented("GET /projects/:project_id/lists/:list_id/todos")
+
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
 		}
-		return notImplemented("GET /projects/:project_id/todos")
+
+		var kind string
+		switch {
+		case getBoolFlag(cmd, "completed"):
+			kind = "completed"
+		case getBoolFlag(cmd, "pending"):
+			kind = "pending"
+		default:
+			kind = ""
+		}
+
+		params := url.Values{}
+		params.Add("kind", kind)
+		data, err := c.Get(fmt.Sprintf("/projects/%s/todos", projectSid), params)
+		if err != nil {
+			return err
+		}
+
+		printList(data, "todos", nil)
+		return nil
 	},
 }
 
@@ -68,6 +93,8 @@ func init() {
 	addProjectFlag(todosListCmd)
 	addListFlag(todosListCmd)
 	addPaginationFlags(todosListCmd)
+	todosListCmd.Flags().Bool("completed", false, "Show the completed todos")
+	todosListCmd.Flags().Bool("pending", false, "Show the pending todos")
 
 	addProjectFlag(todosCreateCmd)
 	addListFlag(todosCreateCmd)
