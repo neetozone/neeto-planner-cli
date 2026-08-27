@@ -24,13 +24,13 @@ var projectsListCmd = &cobra.Command{
 
 		var kind string
 		switch {
-		case getBoolFlag(cmd, "template"):
+		case cmd.Flags().Changed("template"):
 			kind = "template"
-		case getBoolFlag(cmd, "archived"):
+		case cmd.Flags().Changed("archived"):
 			kind = "archived"
-		case getBoolFlag(cmd, "trashed"):
+		case cmd.Flags().Changed("trashed"):
 			kind = "trashed"
-		case getBoolFlag(cmd, "all"):
+		case cmd.Flags().Changed("all"):
 			kind = "all"
 		default:
 			kind = ""

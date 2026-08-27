@@ -32,9 +32,9 @@ var listsListCmd = &cobra.Command{
 
 		var kind string
 		switch {
-		case getBoolFlag(cmd, "trashed"):
+		case cmd.Flags().Changed("trashed"):
 			kind = "trashed"
-		case getBoolFlag(cmd, "archived"):
+		case cmd.Flags().Changed("archived"):
 			kind = "archived"
 		default:
 			kind = ""

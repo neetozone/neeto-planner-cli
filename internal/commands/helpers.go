@@ -73,17 +73,16 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func getBoolFlag(cmd *cobra.Command, name string) bool {
-	val, _ := cmd.Flags().GetBool(name)
-	return val
-}
-
 func printOrganizationInformation(data json.RawMessage) {
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-	fmt.Printf("Organization: %s\n", metadata["organization"])
+	organization, ok := metadata["organization"].(string)
+	if !ok {
+		organization = "-"
+	}
+	fmt.Printf("Organization: %s\n", organization)
 }
 
 func printProjectInformation(data json.RawMessage) {
@@ -91,9 +90,20 @@ func printProjectInformation(data json.RawMessage) {
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-	if project, ok := metadata["project"].(map[string]interface{}); ok {
-		fmt.Printf("Project: %s (%s)\n", project["name"], project["sid"])
+	project, ok := metadata["project"].(map[string]interface{})
+	if !ok {
+		fmt.Printf("Project: -\n")
+		return
 	}
+	name, ok := project["name"].(string)
+	if !ok {
+		name = "-"
+	}
+	sid, ok := project["sid"].(string)
+	if !ok {
+		sid = "-"
+	}
+	fmt.Printf("Project: %s (%s)\n", name, sid)
 }
 
 func printTotalCount(data json.RawMessage) {
@@ -101,9 +111,12 @@ func printTotalCount(data json.RawMessage) {
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-	if count, ok := metadata["total_count"].(float64); ok {
-		fmt.Printf("Total count: %d\n", int(count))
+	count, ok := metadata["total_count"].(float64)
+	if !ok {
+		fmt.Printf("Total count: -\n")
+		return
 	}
+	fmt.Printf("Total count: %d\n", int(count))
 }
 
 func newLine() {
