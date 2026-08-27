@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/url"
 
 	"github.com/spf13/cobra"
@@ -43,7 +45,16 @@ var projectsListCmd = &cobra.Command{
 			return err
 		}
 
+		var metadata map[string]interface{}
+		if err := json.Unmarshal(data, &metadata); err != nil {
+			return err
+		}
+
+		fmt.Printf("\nOrganization: %s\n\n", metadata["organization"])
 		printList(data, "projects", nil)
+		if count, ok := metadata["total_count"].(float64); ok {
+			fmt.Printf("\nTotal Count: %d\n", int(count))
+		}
 		return nil
 	},
 }
