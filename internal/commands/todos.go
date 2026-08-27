@@ -8,6 +8,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Todo struct {
+	Name      string `json:"name"`
+	Handle    int    `json:"handle"`
+	Completed bool   `json:"completed"`
+}
+
+type todoResponse struct {
+	Todo Todo `json:"todo"`
+}
+
 var todosCmd = &cobra.Command{
 	Use:   "todos",
 	Short: "Manage todos",
@@ -115,18 +125,13 @@ var todosUpdateCmd = &cobra.Command{
 			return err
 		}
 
-		var todoResult map[string]json.RawMessage
-		if err := json.Unmarshal(data, &todoResult); err != nil {
-			return err
+		var resp todoResponse
+		if err := json.Unmarshal(data, &resp); err != nil {
+			return fmt.Errorf("parsing todo response: %w", err)
 		}
 
-		var result map[string]interface{}
-		if err := json.Unmarshal(todoResult["todo"], &result); err != nil {
-			return err
-		}
-
-		fmt.Printf("Name: %s (#%d)\n", result["name"], int(result["handle"].(float64)))
-		fmt.Printf("Completed: %v\n\n", result["completed"])
+		fmt.Printf("Name: %s (#%d)\n", resp.Todo.Name, resp.Todo.Handle)
+		fmt.Printf("Completed: %v\n\n", resp.Todo.Completed)
 		return nil
 	},
 }

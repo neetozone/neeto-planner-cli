@@ -9,7 +9,6 @@ import (
 
 	"github.com/neetozone/neeto-planner-cli/internal/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
-	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 )
@@ -95,7 +94,7 @@ func resolveProjectSid(cmd *cobra.Command, projectValue string) (string, error) 
 
 	projectItems, hasItems := parsed["projects"]
 	if !hasItems {
-		output.PrintMessage("Projects not found (404)")
+		return "", fmt.Errorf("Projects not found (404)")
 	}
 
 	var parsedItems []map[string]interface{}

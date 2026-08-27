@@ -76,6 +76,7 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 func printOrganizationInformation(data json.RawMessage) {
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(data, &metadata); err != nil {
+		fmt.Println("error decoding data")
 		return
 	}
 	organization, ok := metadata["organization"].(string)
@@ -88,6 +89,7 @@ func printOrganizationInformation(data json.RawMessage) {
 func printProjectInformation(data json.RawMessage) {
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(data, &metadata); err != nil {
+		fmt.Println("error decoding data")
 		return
 	}
 	project, ok := metadata["project"].(map[string]interface{})
@@ -109,14 +111,16 @@ func printProjectInformation(data json.RawMessage) {
 func printTotalCount(data json.RawMessage) {
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(data, &metadata); err != nil {
+		fmt.Println("error decoding data")
 		return
 	}
-	count, ok := metadata["total_count"].(float64)
-	if !ok {
+
+	switch v := metadata["total_count"].(type) {
+	case float64:
+		fmt.Printf("Total count: %d\n", int(v))
+	default:
 		fmt.Printf("Total count: -\n")
-		return
 	}
-	fmt.Printf("Total count: %d\n", int(count))
 }
 
 func newLine() {
