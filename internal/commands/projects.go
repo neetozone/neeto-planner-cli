@@ -53,7 +53,7 @@ var projectsListCmd = &cobra.Command{
 		fmt.Printf("\nOrganization: %s\n\n", metadata["organization"])
 		printList(data, "projects", nil)
 		if count, ok := metadata["total_count"].(float64); ok {
-			fmt.Printf("\nTotal Count: %d\n", int(count))
+			fmt.Printf("\nTotal count: %d\n", int(count))
 		}
 		return nil
 	},

@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 )
@@ -49,7 +48,22 @@ var listsListCmd = &cobra.Command{
 			return err
 		}
 
+		var metadata map[string]interface{}
+		if err := json.Unmarshal(data, &metadata); err != nil {
+			return err
+		}
+
+		project, ok := metadata["project"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("broken project data type")
+		}
+
+		fmt.Printf("\nOrganization: %s\n", metadata["organization"])
+		fmt.Printf("Project: %s (%s)\n\n", project["name"], project["sid"])
 		printList(data, "lists", nil)
+		if count, ok := project["lists_count"].(float64); ok {
+			fmt.Printf("\nTotal count: %d\n", int(count))
+		}
 		return nil
 	},
 }
@@ -128,7 +142,7 @@ func resolveListSid(cmd *cobra.Command, listValue string) (string, error) {
 
 	listItems, hasItems := parsed["lists"]
 	if !hasItems {
-		output.PrintMessage("List not found (404)")
+		return "", fmt.Errorf("list not found (404)")
 	}
 
 	var parsedItems []map[string]interface{}
