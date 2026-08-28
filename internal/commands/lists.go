@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/sahilm/fuzzy"
+	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -48,13 +48,11 @@ var listsListCmd = &cobra.Command{
 			return err
 		}
 
-		newLine()
-		printOrganizationInformation(data)
-		printProjectInformation(data)
-		newLine()
-		printList(data, "lists", nil)
-		newLine()
-		printTotalCount(data)
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects"},
+		}
+		printList(data, "lists", breadcrumbs)
+		printMetadata(data)
 		return nil
 	},
 }
@@ -87,13 +85,13 @@ var listsShowCmd = &cobra.Command{
 			return err
 		}
 
-		newLine()
-		printOrganizationInformation(data)
-		printProjectInformation(data)
-		newLine()
-		printList(data, "todos", nil)
-		newLine()
-		printTotalCount(data)
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List lists", Command: "neetoplanner lists ls"},
+		}
+
+		printList(data, "todos", breadcrumbs)
+		printMetadata(data)
 		return nil
 	},
 }
@@ -146,24 +144,18 @@ func resolveListSid(cmd *cobra.Command, listValue string) (string, error) {
 	if err := json.Unmarshal(listItems, &parsedItems); err != nil {
 		return "", err
 	}
-
-	names := make([]string, len(parsedItems))
-	for i, elem := range parsedItems {
-		names[i], _ = elem["name"].(string)
-	}
-
 	for _, elem := range parsedItems {
 		sid, _ := elem["sid"].(string)
 		if strings.EqualFold(sid, listValue) {
 			return sid, nil
 		}
 	}
-
-	matches := fuzzy.Find(listValue, names)
-	if len(matches) == 0 {
-		return "", fmt.Errorf("no list matching %q found", listValue)
+	trimmedValue := strings.TrimSpace(listValue)
+	for _, elem := range parsedItems {
+		name, _ := elem["name"].(string)
+		if strings.EqualFold(strings.TrimSpace(name), trimmedValue) {
+			return elem["sid"].(string), nil
+		}
 	}
-
-	best := parsedItems[matches[0].Index]
-	return best["sid"].(string), nil
+	return "", fmt.Errorf("no list matching %q found", listValue)
 }

@@ -12,6 +12,5 @@ require (
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/sahilm/fuzzy v0.1.3 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 )

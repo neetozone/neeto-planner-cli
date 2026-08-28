@@ -9,7 +9,6 @@ import (
 
 	"github.com/neetozone/neeto-planner-cli/internal/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
-	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 )
 
@@ -102,11 +101,6 @@ func resolveProjectSid(cmd *cobra.Command, projectValue string) (string, error) 
 		return "", err
 	}
 
-	names := make([]string, len(parsedItems))
-	for i, elem := range parsedItems {
-		names[i], _ = elem["name"].(string)
-	}
-
 	for _, elem := range parsedItems {
 		sid, _ := elem["sid"].(string)
 		if strings.EqualFold(sid, projectValue) {
@@ -114,13 +108,14 @@ func resolveProjectSid(cmd *cobra.Command, projectValue string) (string, error) 
 		}
 	}
 
-	matches := fuzzy.Find(projectValue, names)
-	if len(matches) == 0 {
-		return "", fmt.Errorf("no project matching %q found", projectValue)
+	trimmedValue := strings.TrimSpace(projectValue)
+	for _, elem := range parsedItems {
+		name, _ := elem["name"].(string)
+		if strings.EqualFold(strings.TrimSpace(name), trimmedValue) {
+			return elem["sid"].(string), nil
+		}
 	}
-
-	best := parsedItems[matches[0].Index]
-	return best["sid"].(string), nil
+	return "", fmt.Errorf("no project matching %q found", projectValue)
 }
 
 func addProjectFlag(cmd *cobra.Command) {

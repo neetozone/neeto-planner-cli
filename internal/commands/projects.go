@@ -49,12 +49,8 @@ var projectsListCmd = &cobra.Command{
 			return err
 		}
 
-		newLine()
-		printOrganizationInformation(data)
-		newLine()
 		printList(data, "projects", nil)
-		newLine()
-		printTotalCount(data)
+		printMetadata(data)
 		return nil
 	},
 }

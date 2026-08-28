@@ -73,53 +73,33 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func printOrganizationInformation(data json.RawMessage) {
-	var metadata map[string]interface{}
-	if err := json.Unmarshal(data, &metadata); err != nil {
-		return
+func printMetadata(data json.RawMessage) {
+	type Metadata struct {
+		Organization json.RawMessage `json:"organization"`
+		Project      json.RawMessage `json:"project"`
+		TotalCount   json.RawMessage `json:"total_count"`
 	}
-	organization, ok := metadata["organization"].(string)
-	if !ok {
-		organization = "-"
-	}
-	fmt.Printf("Organization: %s\n", organization)
-}
-
-func printProjectInformation(data json.RawMessage) {
-	var metadata map[string]interface{}
-	if err := json.Unmarshal(data, &metadata); err != nil {
-		return
-	}
-	project, ok := metadata["project"].(map[string]interface{})
-	if !ok {
-		fmt.Printf("Project: -\n")
-		return
-	}
-	name, ok := project["name"].(string)
-	if !ok {
-		name = "-"
-	}
-	sid, ok := project["sid"].(string)
-	if !ok {
-		sid = "-"
-	}
-	fmt.Printf("Project: %s (%s)\n", name, sid)
-}
-
-func printTotalCount(data json.RawMessage) {
-	var metadata map[string]interface{}
+	var metadata Metadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
 
-	switch v := metadata["total_count"].(type) {
-	case float64:
-		fmt.Printf("Total count: %d\n", int(v))
-	default:
-		fmt.Printf("Total count: -\n")
-	}
-}
-
-func newLine() {
 	fmt.Println()
+	printResource(wrapField("organization", metadata.Organization), nil)
+	fmt.Println()
+	printResource(wrapField("project", metadata.Project), nil)
+	fmt.Println()
+	printResource(wrapField("total_count", metadata.TotalCount), nil)
+	fmt.Println()
+}
+
+func wrapField(name string, val json.RawMessage) json.RawMessage {
+	if len(val) == 0 {
+		return nil
+	}
+	wrapped, err := json.Marshal(map[string]json.RawMessage{name: val})
+	if err != nil {
+		return nil
+	}
+	return wrapped
 }

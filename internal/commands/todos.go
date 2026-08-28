@@ -1,10 +1,10 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 
+	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -12,10 +12,6 @@ type Todo struct {
 	Name      string `json:"name"`
 	Handle    int    `json:"handle"`
 	Completed bool   `json:"completed"`
-}
-
-type todoResponse struct {
-	Todo Todo `json:"todo"`
 }
 
 var todosCmd = &cobra.Command{
@@ -55,13 +51,14 @@ var todosListCmd = &cobra.Command{
 			return err
 		}
 
-		newLine()
-		printOrganizationInformation(data)
-		printProjectInformation(data)
-		newLine()
-		printList(data, "todos", nil)
-		newLine()
-		printTotalCount(data)
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List lists", Command: "neetoplanner lists ls"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid or name>"},
+		}
+
+		printList(data, "todos", breadcrumbs)
+		printMetadata(data)
 		return nil
 	},
 }
@@ -125,13 +122,13 @@ var todosUpdateCmd = &cobra.Command{
 			return err
 		}
 
-		var resp todoResponse
-		if err := json.Unmarshal(data, &resp); err != nil {
-			return fmt.Errorf("parsing todo response: %w", err)
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List lists", Command: "neetoplanner lists ls"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid or name>"},
 		}
 
-		fmt.Printf("Name: %s (#%d)\n", resp.Todo.Name, resp.Todo.Handle)
-		fmt.Printf("Completed: %v\n\n", resp.Todo.Completed)
+		printResource(data, breadcrumbs)
 		return nil
 	},
 }
