@@ -52,7 +52,9 @@ var listsListCmd = &cobra.Command{
 			{Label: "List projects", Command: "neetoplanner projects"},
 		}
 		printList(data, "lists", breadcrumbs)
-		printMetadata(data)
+		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+			printMetadata(data)
+		}
 		return nil
 	},
 }
@@ -91,7 +93,9 @@ var listsShowCmd = &cobra.Command{
 		}
 
 		printList(data, "todos", breadcrumbs)
-		printMetadata(data)
+		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+			printMetadata(data)
+		}
 		return nil
 	},
 }
@@ -99,6 +103,7 @@ var listsShowCmd = &cobra.Command{
 func init() {
 	addProjectFlag(listsListCmd)
 	addPaginationFlags(listsListCmd)
+	addVerboseFlag(listsListCmd)
 
 	listsCmd.AddCommand(listsListCmd)
 	listsListCmd.Flags().Bool("trashed", false, "List trashed lists")
@@ -106,6 +111,7 @@ func init() {
 	listsListCmd.MarkFlagsMutuallyExclusive("trashed", "archived")
 
 	addProjectFlag(listsShowCmd)
+	addVerboseFlag(listsShowCmd)
 	listsCmd.AddCommand(listsShowCmd)
 
 	rootCmd.AddCommand(listsCmd)

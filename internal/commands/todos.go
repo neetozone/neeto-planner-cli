@@ -58,7 +58,9 @@ var todosListCmd = &cobra.Command{
 		}
 
 		printList(data, "todos", breadcrumbs)
-		printMetadata(data)
+		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+			printMetadata(data)
+		}
 		return nil
 	},
 }
@@ -146,6 +148,7 @@ func init() {
 	addProjectFlag(todosListCmd)
 	addListFlag(todosListCmd)
 	addPaginationFlags(todosListCmd)
+	addVerboseFlag(todosListCmd)
 	todosListCmd.Flags().Bool("completed", false, "Show the completed todos")
 	todosListCmd.Flags().Bool("pending", false, "Show the pending todos")
 

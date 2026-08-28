@@ -50,13 +50,16 @@ var projectsListCmd = &cobra.Command{
 		}
 
 		printList(data, "projects", nil)
-		printMetadata(data)
+		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+			printMetadata(data)
+		}
 		return nil
 	},
 }
 
 func init() {
 	addPaginationFlags(projectsListCmd)
+	addVerboseFlag(projectsListCmd)
 
 	projectsCmd.AddCommand(projectsListCmd)
 	projectsListCmd.Flags().Bool("template", false, "List template projects")

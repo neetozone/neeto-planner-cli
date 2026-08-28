@@ -103,3 +103,7 @@ func wrapField(name string, val json.RawMessage) json.RawMessage {
 	}
 	return wrapped
 }
+
+func addVerboseFlag(cmd *cobra.Command) {
+	cmd.Flags().BoolP("verbose", "v", false, "Display more information")
+}
