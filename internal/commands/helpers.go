@@ -77,7 +77,6 @@ func printMetadata(data json.RawMessage) {
 	type Metadata struct {
 		Organization json.RawMessage `json:"organization"`
 		Project      json.RawMessage `json:"project"`
-		TotalCount   json.RawMessage `json:"total_count"`
 	}
 	var metadata Metadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
@@ -88,8 +87,6 @@ func printMetadata(data json.RawMessage) {
 	printResource(wrapField("organization", metadata.Organization), nil)
 	fmt.Println()
 	printResource(wrapField("project", metadata.Project), nil)
-	fmt.Println()
-	printResource(wrapField("total_count", metadata.TotalCount), nil)
 	fmt.Println()
 }
 

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/json"
-	"net/url"
 
 	"github.com/spf13/cobra"
 )
@@ -36,7 +35,7 @@ var projectsListCmd = &cobra.Command{
 			kind = ""
 		}
 
-		params := url.Values{}
+		params := paginationParams(cmd)
 		params.Add("kind", kind)
 
 		data, err := c.Get("/projects", params)

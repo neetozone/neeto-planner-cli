@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ var todosListCmd = &cobra.Command{
 			kind = ""
 		}
 
-		params := url.Values{}
+		params := paginationParams(cmd)
 		params.Add("kind", kind)
 		data, err := c.Get(fmt.Sprintf("/projects/%s/todos", projectSid), params)
 		if err != nil {

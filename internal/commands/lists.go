@@ -92,7 +92,7 @@ var listsShowCmd = &cobra.Command{
 			{Label: "List lists", Command: "neetoplanner lists ls"},
 		}
 
-		printList(data, "todos", breadcrumbs)
+		printResource(data, breadcrumbs)
 		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
 			printMetadata(data)
 		}
@@ -128,7 +128,7 @@ func resolveListSid(cmd *cobra.Command, listValue string) (string, error) {
 		return "", err
 	}
 
-	params := url.Values{}
+	params := paginationParams(cmd)
 	params.Add("kind", "all")
 
 	data, err := c.Get(fmt.Sprintf("/projects/%s/lists", projectSid), params)
