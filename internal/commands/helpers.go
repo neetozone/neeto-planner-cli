@@ -82,11 +82,14 @@ func printMetadata(data json.RawMessage) {
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-
-	fmt.Println()
-	printResource(wrapField("organization", metadata.Organization), nil)
-	fmt.Println()
-	printResource(wrapField("project", metadata.Project), nil)
+	if len(metadata.Organization) > 0 && string(metadata.Organization) != "null" {
+		fmt.Println()
+		printResource(wrapField("organization", metadata.Organization), nil)
+	}
+	if len(metadata.Project) > 0 && string(metadata.Project) != "null" {
+		fmt.Println()
+		printResource(wrapField("project", metadata.Project), nil)
+	}
 	fmt.Println()
 }
 
