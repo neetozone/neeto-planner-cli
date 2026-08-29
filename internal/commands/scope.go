@@ -1,11 +1,8 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/neetozone/neeto-planner-cli/internal/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
@@ -64,58 +61,7 @@ func resolveProject(cmd *cobra.Command) (string, error) {
 		configValue = store.For(subdomain).DefaultProject
 	}
 
-	projectValue, err := pickProject(flagValue, envValue, configValue)
-	if err != nil {
-		return "", err
-	}
-
-	return resolveProjectSid(cmd, projectValue)
-}
-
-func resolveProjectSid(cmd *cobra.Command, projectValue string) (string, error) {
-	c, err := getClient(cmd)
-	if err != nil {
-		return "", err
-	}
-
-	params := url.Values{}
-	params.Add("kind", "all")
-
-	data, err := c.Get("/projects", params)
-	if err != nil {
-		return "", err
-	}
-
-	var parsed map[string]json.RawMessage
-	if err := json.Unmarshal(data, &parsed); err != nil {
-		return "", err
-	}
-
-	projectItems, hasItems := parsed["projects"]
-	if !hasItems {
-		return "", fmt.Errorf("Projects not found (404)")
-	}
-
-	var parsedItems []map[string]interface{}
-	if err := json.Unmarshal(projectItems, &parsedItems); err != nil {
-		return "", err
-	}
-
-	for _, elem := range parsedItems {
-		sid, _ := elem["sid"].(string)
-		if strings.EqualFold(sid, projectValue) {
-			return sid, nil
-		}
-	}
-
-	trimmedValue := strings.TrimSpace(projectValue)
-	for _, elem := range parsedItems {
-		name, _ := elem["name"].(string)
-		if strings.EqualFold(strings.TrimSpace(name), trimmedValue) {
-			return elem["sid"].(string), nil
-		}
-	}
-	return "", fmt.Errorf("no project matching %q found", projectValue)
+	return pickProject(flagValue, envValue, configValue)
 }
 
 func addProjectFlag(cmd *cobra.Command) {

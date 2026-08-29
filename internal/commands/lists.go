@@ -1,10 +1,8 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
@@ -75,12 +73,7 @@ var listsShowCmd = &cobra.Command{
 			return err
 		}
 
-		listValue := args[0]
-		listSid, err := resolveListSid(cmd, listValue)
-		if err != nil {
-			return err
-		}
-
+		listSid := args[0]
 		params := url.Values{}
 		data, err := c.Get(fmt.Sprintf("/projects/%s/lists/%s", projectSid, listSid), params)
 		if err != nil {
@@ -115,53 +108,4 @@ func init() {
 	listsCmd.AddCommand(listsShowCmd)
 
 	rootCmd.AddCommand(listsCmd)
-}
-
-func resolveListSid(cmd *cobra.Command, listValue string) (string, error) {
-	c, err := getClient(cmd)
-	if err != nil {
-		return "", err
-	}
-
-	projectSid, err := resolveProject(cmd)
-	if err != nil {
-		return "", err
-	}
-
-	params := paginationParams(cmd)
-	params.Add("kind", "all")
-
-	data, err := c.Get(fmt.Sprintf("/projects/%s/lists", projectSid), params)
-	if err != nil {
-		return "", err
-	}
-
-	var parsed map[string]json.RawMessage
-	if err := json.Unmarshal(data, &parsed); err != nil {
-		return "", err
-	}
-
-	listItems, hasItems := parsed["lists"]
-	if !hasItems {
-		return "", fmt.Errorf("list not found (404)")
-	}
-
-	var parsedItems []map[string]interface{}
-	if err := json.Unmarshal(listItems, &parsedItems); err != nil {
-		return "", err
-	}
-	for _, elem := range parsedItems {
-		sid, _ := elem["sid"].(string)
-		if strings.EqualFold(sid, listValue) {
-			return sid, nil
-		}
-	}
-	trimmedValue := strings.TrimSpace(listValue)
-	for _, elem := range parsedItems {
-		name, _ := elem["name"].(string)
-		if strings.EqualFold(strings.TrimSpace(name), trimmedValue) {
-			return elem["sid"].(string), nil
-		}
-	}
-	return "", fmt.Errorf("no list matching %q found", listValue)
 }
