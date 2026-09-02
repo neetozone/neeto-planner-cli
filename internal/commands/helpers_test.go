@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
