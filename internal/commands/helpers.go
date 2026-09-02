@@ -75,22 +75,16 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 
 func printMetadata(data json.RawMessage) {
 	type Metadata struct {
-		Organization json.RawMessage `json:"organization"`
-		Project      json.RawMessage `json:"project"`
+		Content json.RawMessage `json:"metadata"`
 	}
 	var metadata Metadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-	if len(metadata.Organization) > 0 && string(metadata.Organization) != "null" {
+	if len(metadata.Content) > 0 && string(metadata.Content) != "null" {
 		fmt.Println()
-		printResource(wrapField("organization", metadata.Organization), nil)
+		printResource(wrapField("metadata", metadata.Content), nil)
 	}
-	if len(metadata.Project) > 0 && string(metadata.Project) != "null" {
-		fmt.Println()
-		printResource(wrapField("project", metadata.Project), nil)
-	}
-	fmt.Println()
 }
 
 func wrapField(name string, val json.RawMessage) json.RawMessage {
