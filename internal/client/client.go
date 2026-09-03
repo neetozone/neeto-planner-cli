@@ -26,7 +26,7 @@ type Client struct {
 
 func New(creds *auth.Credentials) *Client {
 	return &Client{
-		BaseURL:      auth.BaseURL(creds.Subdomain) + "/api/external/v2",
+		BaseURL:      auth.BaseURL(creds.Subdomain) + "/api/external/v1",
 		SessionToken: creds.SessionToken,
 		HTTPClient:   &http.Client{Timeout: 30 * time.Second},
 	}

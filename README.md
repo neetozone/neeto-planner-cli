@@ -95,8 +95,8 @@ make clean          # Remove built binary
 Set `NEETOPLANNER_BASE_URL` to override the default `https://<subdomain>.neetoplanner.com`:
 
 ```bash
-export NEETOPLANNER_BASE_URL=http://acme.lvh.me:8980
-neetoplanner login --subdomain acme
+export NEETOPLANNER_BASE_URL=http://spinkart.lvh.me:8830
+neetoplanner login --subdomain spinkart
 ```
 
 ## Global flags

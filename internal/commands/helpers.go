@@ -72,3 +72,41 @@ func readJSONFile(path string) (map[string]interface{}, error) {
 	}
 	return result, nil
 }
+
+func printMetadata(data json.RawMessage) {
+	type Metadata struct {
+		Content json.RawMessage `json:"metadata"`
+	}
+	var metadata Metadata
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return
+	}
+	if data, err := wrapField("metadata", metadata.Content); err == nil {
+		fmt.Println()
+		printResource(data, nil)
+	}
+}
+
+func wrapField(name string, val json.RawMessage) (json.RawMessage, error) {
+	if len(val) == 0 {
+		return nil, fmt.Errorf("no value present")
+	}
+	wrapped, err := json.Marshal(map[string]json.RawMessage{name: val})
+	if err != nil {
+		return nil, err
+	}
+	return wrapped, nil
+}
+
+func addVerboseFlag(cmd *cobra.Command) {
+	cmd.Flags().BoolP("verbose", "v", false, "Display more information")
+}
+
+func kindParam(cmd *cobra.Command, names ...string) string {
+	for _, name := range names {
+		if v, _ := cmd.Flags().GetBool(name); v {
+			return name
+		}
+	}
+	return ""
+}

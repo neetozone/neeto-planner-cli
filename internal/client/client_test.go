@@ -28,7 +28,7 @@ func TestNew(t *testing.T) {
 	}
 	c := New(creds)
 
-	wantURL := "https://acme.neetoplanner.com/api/external/v2"
+	wantURL := "https://acme.neetoplanner.com/api/external/v1"
 	if c.BaseURL != wantURL {
 		t.Errorf("BaseURL = %q, want %q", c.BaseURL, wantURL)
 	}

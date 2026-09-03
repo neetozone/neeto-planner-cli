@@ -1,6 +1,9 @@
 package commands
 
 import (
+	"fmt"
+
+	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -11,16 +14,38 @@ var todosCmd = &cobra.Command{
 
 var todosListCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List todos in a project or list",
+	Short:   "List todos in a project",
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if _, err := resolveProject(cmd); err != nil {
+		c, err := getClient(cmd)
+		if err != nil {
 			return err
 		}
-		if list, _ := cmd.Flags().GetString("list"); list != "" {
-			return notImplemented("GET /projects/:project_id/lists/:list_id/todos")
+
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
 		}
-		return notImplemented("GET /projects/:project_id/todos")
+
+		kind := kindParam(cmd, "completed", "pending")
+		params := paginationParams(cmd)
+		params.Add("kind", kind)
+		data, err := c.Get(fmt.Sprintf("/projects/%s/todos", projectSid), params)
+		if err != nil {
+			return err
+		}
+
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects ls"},
+			{Label: "List lists", Command: "neetoplanner lists ls"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
+		}
+
+		printList(data, "todos", breadcrumbs)
+		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
+			printMetadata(data)
+		}
+		return nil
 	},
 }
 
@@ -47,11 +72,50 @@ var todosCreateCmd = &cobra.Command{
 }
 
 var todosUpdateCmd = &cobra.Command{
-	Use:   "update <id>",
+	Use:   "update <handle>",
 	Short: "Update a todo",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return notImplemented("PUT /todos/:id")
+		c, err := getClient(cmd)
+		if err != nil {
+			return err
+		}
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
+		}
+		handle := args[0]
+
+		todo := map[string]interface{}{}
+		if cmd.Flags().Changed("title") {
+			title, _ := cmd.Flags().GetString("title")
+			todo["name"] = title
+		}
+		if cmd.Flags().Changed("completed") {
+			todo["completed"] = true
+		}
+		if cmd.Flags().Changed("pending") {
+			todo["completed"] = false
+		}
+
+		if len(todo) == 0 {
+			return fmt.Errorf("no fields to update; pass --title, --completed, or --pending")
+		}
+
+		body := map[string]interface{}{"todo": todo}
+		data, err := c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, handle), body)
+		if err != nil {
+			return err
+		}
+
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List projects", Command: "neetoplanner projects ls"},
+			{Label: "List lists", Command: "neetoplanner lists ls"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
+		}
+
+		printResource(data, breadcrumbs)
+		return nil
 	},
 }
 
@@ -66,18 +130,23 @@ var todosDoneCmd = &cobra.Command{
 
 func init() {
 	addProjectFlag(todosListCmd)
-	addListFlag(todosListCmd)
 	addPaginationFlags(todosListCmd)
+	addVerboseFlag(todosListCmd)
+	todosListCmd.Flags().Bool("completed", false, "Show the completed todos")
+	todosListCmd.Flags().Bool("pending", false, "Show the pending todos")
 
 	addProjectFlag(todosCreateCmd)
 	addListFlag(todosCreateCmd)
 	todosCreateCmd.Flags().String("assignee", "", "Assignee email")
 	todosCreateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
 
+	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")
 	todosUpdateCmd.Flags().String("assignee", "", "Assignee email")
 	todosUpdateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
 	todosUpdateCmd.Flags().Bool("completed", false, "Mark as completed")
+	todosUpdateCmd.Flags().Bool("pending", false, "Mark as pending")
+	todosUpdateCmd.MarkFlagsMutuallyExclusive("pending", "completed")
 
 	todosCmd.AddCommand(todosListCmd)
 	todosCmd.AddCommand(todosShowCmd)

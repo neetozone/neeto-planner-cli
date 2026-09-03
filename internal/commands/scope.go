@@ -28,7 +28,7 @@ func pickProject(flagValue, envValue, configValue string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf(
-		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <name-or-id>",
+		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <name-or-sid>",
 		projectEnvVar,
 	)
 }
@@ -43,9 +43,7 @@ func activeSubdomain(cmd *cobra.Command) (string, error) {
 	return creds.Subdomain, nil
 }
 
-// resolveProject returns the project name or ID a command should act on. The
-// name-to-ID lookup lands with the projects endpoint; until then the raw value
-// is passed through.
+// resolveProject returns the SID a command should act on
 func resolveProject(cmd *cobra.Command) (string, error) {
 	flagValue, _ := cmd.Flags().GetString("project")
 	envValue := os.Getenv(projectEnvVar)
