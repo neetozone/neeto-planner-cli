@@ -81,23 +81,32 @@ func printMetadata(data json.RawMessage) {
 	if err := json.Unmarshal(data, &metadata); err != nil {
 		return
 	}
-	if len(metadata.Content) > 0 && string(metadata.Content) != "null" {
+	if data, err := wrapField("metadata", metadata.Content); err == nil {
 		fmt.Println()
-		printResource(wrapField("metadata", metadata.Content), nil)
+		printResource(data, nil)
 	}
 }
 
-func wrapField(name string, val json.RawMessage) json.RawMessage {
+func wrapField(name string, val json.RawMessage) (json.RawMessage, error) {
 	if len(val) == 0 {
-		return nil
+		return nil, fmt.Errorf("no value present")
 	}
 	wrapped, err := json.Marshal(map[string]json.RawMessage{name: val})
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return wrapped
+	return wrapped, nil
 }
 
 func addVerboseFlag(cmd *cobra.Command) {
 	cmd.Flags().BoolP("verbose", "v", false, "Display more information")
+}
+
+func kindParam(cmd *cobra.Command, names ...string) string {
+	for _, name := range names {
+		if v, _ := cmd.Flags().GetBool(name); v {
+			return name
+		}
+	}
+	return ""
 }

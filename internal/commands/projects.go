@@ -1,8 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
-
+	"github.com/neetozone/neeto-planner-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -21,34 +20,22 @@ var projectsListCmd = &cobra.Command{
 			return err
 		}
 
-		var kind string
-		switch {
-		case cmd.Flags().Changed("template"):
-			kind = "template"
-		case cmd.Flags().Changed("archived"):
-			kind = "archived"
-		case cmd.Flags().Changed("trashed"):
-			kind = "trashed"
-		case cmd.Flags().Changed("all"):
-			kind = "all"
-		default:
-			kind = ""
-		}
-
+		kind := kindParam(cmd, "template", "archived", "trashed", "all")
 		params := paginationParams(cmd)
-		params.Add("kind", kind)
+		if kind != "" {
+			params.Set("kind", kind)
+		}
 
 		data, err := c.Get("/projects", params)
 		if err != nil {
 			return err
 		}
 
-		var metadata map[string]interface{}
-		if err := json.Unmarshal(data, &metadata); err != nil {
-			return err
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List lists in a project", Command: "neetoplanner lists ls --project <sid>"},
 		}
 
-		printList(data, "projects", nil)
+		printList(data, "projects", breadcrumbs)
 		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
 			printMetadata(data)
 		}

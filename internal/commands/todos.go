@@ -7,12 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Todo struct {
-	Name      string `json:"name"`
-	Handle    int    `json:"handle"`
-	Completed bool   `json:"completed"`
-}
-
 var todosCmd = &cobra.Command{
 	Use:   "todos",
 	Short: "Manage todos",
@@ -33,16 +27,7 @@ var todosListCmd = &cobra.Command{
 			return err
 		}
 
-		var kind string
-		switch {
-		case cmd.Flags().Changed("completed"):
-			kind = "completed"
-		case cmd.Flags().Changed("pending"):
-			kind = "pending"
-		default:
-			kind = ""
-		}
-
+		kind := kindParam(cmd, "completed", "pending")
 		params := paginationParams(cmd)
 		params.Add("kind", kind)
 		data, err := c.Get(fmt.Sprintf("/projects/%s/todos", projectSid), params)
@@ -51,9 +36,9 @@ var todosListCmd = &cobra.Command{
 		}
 
 		breadcrumbs := []output.Breadcrumb{
-			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List projects", Command: "neetoplanner projects ls"},
 			{Label: "List lists", Command: "neetoplanner lists ls"},
-			{Label: "Show list", Command: "neetoplanner lists show <sid or name>"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
 		}
 
 		printList(data, "todos", breadcrumbs)
@@ -124,9 +109,9 @@ var todosUpdateCmd = &cobra.Command{
 		}
 
 		breadcrumbs := []output.Breadcrumb{
-			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List projects", Command: "neetoplanner projects ls"},
 			{Label: "List lists", Command: "neetoplanner lists ls"},
-			{Label: "Show list", Command: "neetoplanner lists show <sid or name>"},
+			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
 		}
 
 		printResource(data, breadcrumbs)
@@ -145,7 +130,6 @@ var todosDoneCmd = &cobra.Command{
 
 func init() {
 	addProjectFlag(todosListCmd)
-	addListFlag(todosListCmd)
 	addPaginationFlags(todosListCmd)
 	addVerboseFlag(todosListCmd)
 	todosListCmd.Flags().Bool("completed", false, "Show the completed todos")

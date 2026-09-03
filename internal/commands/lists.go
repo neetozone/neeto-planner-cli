@@ -28,17 +28,8 @@ var listsListCmd = &cobra.Command{
 			return err
 		}
 
-		var kind string
-		switch {
-		case cmd.Flags().Changed("trashed"):
-			kind = "trashed"
-		case cmd.Flags().Changed("archived"):
-			kind = "archived"
-		default:
-			kind = ""
-		}
-
-		params := url.Values{}
+		kind := kindParam(cmd, "trashed", "archived")
+		params := paginationParams(cmd)
 		params.Add("kind", kind)
 
 		data, err := c.Get(fmt.Sprintf("/projects/%s/lists", sid), params)
@@ -47,7 +38,7 @@ var listsListCmd = &cobra.Command{
 		}
 
 		breadcrumbs := []output.Breadcrumb{
-			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List projects", Command: "neetoplanner projects ls"},
 		}
 		printList(data, "lists", breadcrumbs)
 		if verbose, _ := cmd.Flags().GetBool("verbose"); verbose {
@@ -58,10 +49,9 @@ var listsListCmd = &cobra.Command{
 }
 
 var listsShowCmd = &cobra.Command{
-	Use:     "show",
-	Short:   "View a particular list in a project",
-	Aliases: []string{"lsh"},
-	Args:    cobra.ExactArgs(1),
+	Use:   "show <sid>",
+	Short: "View a particular list in a project",
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectSid, err := resolveProject(cmd)
 		if err != nil {
@@ -81,7 +71,7 @@ var listsShowCmd = &cobra.Command{
 		}
 
 		breadcrumbs := []output.Breadcrumb{
-			{Label: "List projects", Command: "neetoplanner projects"},
+			{Label: "List projects", Command: "neetoplanner projects ls"},
 			{Label: "List lists", Command: "neetoplanner lists ls"},
 		}
 
