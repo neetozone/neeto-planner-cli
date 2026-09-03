@@ -133,7 +133,14 @@ VERSION, runs GoReleaser, uploads artifacts to
 neetoplanner setup claude      # Register plugin with Claude Code
 neetoplanner setup cursor      # Write .cursor/rules/neetoplanner.mdc
 neetoplanner setup windsurf    # Write .windsurf/rules/neetoplanner.md
-neetoplanner setup copilot     # Append to .github/copilot-instructions.md
-neetoplanner setup gemini      # Append to GEMINI.md
-neetoplanner setup codex       # Append to AGENTS.md
+neetoplanner setup copilot     # Add a NeetoPlanner section to .github/copilot-instructions.md
+neetoplanner setup gemini      # Add a NeetoPlanner section to GEMINI.md
+neetoplanner setup codex       # Add a NeetoPlanner section to AGENTS.md
 ```
+
+Every command except `setup claude` writes into the current project directory, so
+run these commands from the root of the project the assistant works in. Re-run
+them after every upgrade: `setup cursor` and `setup windsurf` overwrite their rule
+file, while `setup copilot`, `setup gemini` and `setup codex` keep the existing
+content of their file and replace only the NeetoPlanner section instead of adding a
+duplicate.
