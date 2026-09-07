@@ -99,7 +99,7 @@ var todosUpdateCmd = &cobra.Command{
 		}
 
 		if len(todo) == 0 {
-			return fmt.Errorf("no fields to update; pass --title, --completed, or --pending")
+			return fmt.Errorf("No fields to update. Pass --title, --completed, or --pending.")
 		}
 
 		body := map[string]interface{}{"todo": todo}
