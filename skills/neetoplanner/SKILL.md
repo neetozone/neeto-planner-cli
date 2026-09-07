@@ -130,14 +130,17 @@ stderr. Common errors the agent should expect:
 ## Product-specific commands
 
 The resource commands are registered with their final names, flags and help
-text, but they are not wired to the API yet — each exits non-zero with a
+text. `projects list`, `lists list`, `lists show`, `todos list`, `todos
+update` and `config set default-project` call the API. `todos show`, `todos
+create` and `todos done` are not wired up yet — each exits non-zero with a
 message naming the endpoint it waits on. Do not treat those failures as bugs
 or try to work around them.
 
 ```
 neetoplanner projects list
 neetoplanner lists list [--project <p>]
-neetoplanner todos list [--project <p>] [--list <l>]
+neetoplanner lists show <sid> [--project <p>]
+neetoplanner todos list [--project <p>]
 neetoplanner todos show <id>
 neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
 neetoplanner todos update <id> [--title ...]

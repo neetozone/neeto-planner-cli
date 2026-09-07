@@ -1,5 +1,3 @@
-// Package config persists non-credential CLI preferences, such as the default
-// project used when a command is run without an explicit --project.
 package config
 
 import (
@@ -13,12 +11,10 @@ const defaultsFile = "defaults.json"
 
 type DirFunc func() (string, error)
 
-// Defaults holds the preferences scoped to a single subdomain.
 type Defaults struct {
 	DefaultProject string `json:"default_project,omitempty"`
 }
 
-// Store maps a subdomain to its preferences.
 type Store struct {
 	Subdomains map[string]Defaults `json:"subdomains"`
 }

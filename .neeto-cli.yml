@@ -6,6 +6,6 @@ api_base_path: /api/external/v1
 root_examples:
   - neetoplanner projects list
   - neetoplanner todos list
-  - neetoplanner todos create --title "Ship it"
+  - neetoplanner todos create "Ship it"
 priority_fields: [name, title, status, completed, list_name, project_name, kind, type, due_date, created_at]
 commons_version: main

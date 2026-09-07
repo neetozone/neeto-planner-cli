@@ -51,8 +51,9 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 		{"config", "set"},
 	}
 
+	root := testRoot(t)
 	for _, path := range paths {
-		if findCommand(testRoot(t), path...) == nil {
+		if findCommand(root, path...) == nil {
 			t.Errorf("command %v is not registered", path)
 		}
 	}
@@ -65,8 +66,9 @@ func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 		{"todos", "create"},
 	}
 
+	root := testRoot(t)
 	for _, path := range paths {
-		cmd := findCommand(testRoot(t), path...)
+		cmd := findCommand(root, path...)
 		if cmd == nil {
 			t.Fatalf("command %v is not registered", path)
 		}
