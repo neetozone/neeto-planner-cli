@@ -100,6 +100,7 @@ Use this whenever a user asks about a flag or command not covered below.
 |---|---|
 | `doctor` | Auth check + API reachability + version. Uses `--subdomain` when multiple are logged in. |
 | `version` | Print CLI version / commit / build date. |
+| `update` | Update the CLI to the latest version (auto-detects brew / shell / PowerShell install). |
 | `commands` | Emit the full command/flag catalog as JSON. |
 | `setup claude` | Install NeetoPlanner plugin into Claude Code (`plugin.json`, hooks, this SKILL.md). |
 | `setup cursor` / `windsurf` / `copilot` / `gemini` / `codex` | Write NeetoPlanner rule files into the current project directory; re-run after an upgrade to refresh them. |
@@ -128,6 +129,24 @@ stderr. Common errors the agent should expect:
 
 ## Product-specific commands
 
-This skeleton CLI does not yet ship product-specific resource commands.
-Run `neetoplanner commands` to see what is currently available, and
-refer to the CLI's own docs for the full command reference once it grows.
+The resource commands are registered with their final names, flags and help
+text, but they are not wired to the API yet — each exits non-zero with a
+message naming the endpoint it waits on. Do not treat those failures as bugs
+or try to work around them.
+
+```
+neetoplanner projects list
+neetoplanner lists list [--project <p>]
+neetoplanner todos list [--project <p>] [--list <l>]
+neetoplanner todos show <id>
+neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
+neetoplanner todos update <id> [--title ...]
+neetoplanner todos done <id>
+neetoplanner config set default-project <p>
+```
+
+`--project` takes a name or an ID, resolved as: `--project` flag, then
+`NEETOPLANNER_PROJECT`, then the per-subdomain default from
+`neetoplanner config set default-project`.
+
+Run `neetoplanner commands` for the current machine-readable catalog.

@@ -28,13 +28,13 @@ var configSetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		store, err := config.Load()
+		store, err := config.Load(configDir)
 		if err != nil {
 			return err
 		}
 
 		store.SetDefaultProject(subdomain, args[1])
-		if err := config.Save(store); err != nil {
+		if err := config.Save(configDir, store); err != nil {
 			return err
 		}
 
@@ -56,7 +56,7 @@ var configGetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		store, err := config.Load()
+		store, err := config.Load(configDir)
 		if err != nil {
 			return err
 		}
@@ -84,13 +84,13 @@ var configUnsetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		store, err := config.Load()
+		store, err := config.Load(configDir)
 		if err != nil {
 			return err
 		}
 
 		store.UnsetDefaultProject(subdomain)
-		if err := config.Save(store); err != nil {
+		if err := config.Save(configDir, store); err != nil {
 			return err
 		}
 
@@ -108,5 +108,5 @@ func init() {
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configUnsetCmd)
 
-	rootCmd.AddCommand(configCmd)
+	register(func(root *cobra.Command) { root.AddCommand(configCmd) })
 }

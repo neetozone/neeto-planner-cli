@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/neetozone/neeto-planner-cli/internal/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -36,7 +35,7 @@ func pickProject(flagValue, envValue, configValue string) (string, error) {
 // activeSubdomain resolves which logged-in subdomain the command applies to.
 func activeSubdomain(cmd *cobra.Command) (string, error) {
 	override, _ := cmd.Flags().GetString("subdomain")
-	creds, err := auth.SelectCredentials(override)
+	creds, err := app.Auth.SelectCredentials(override)
 	if err != nil {
 		return "", err
 	}
@@ -54,7 +53,7 @@ func resolveProject(cmd *cobra.Command) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		store, err := config.Load()
+		store, err := config.Load(configDir)
 		if err != nil {
 			return "", err
 		}

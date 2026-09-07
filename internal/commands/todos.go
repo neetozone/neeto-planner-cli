@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/neetozone/neeto-planner-cli/internal/output"
+	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
 )
 
@@ -154,5 +154,5 @@ func init() {
 	todosCmd.AddCommand(todosUpdateCmd)
 	todosCmd.AddCommand(todosDoneCmd)
 
-	rootCmd.AddCommand(todosCmd)
+	register(func(root *cobra.Command) { root.AddCommand(todosCmd) })
 }

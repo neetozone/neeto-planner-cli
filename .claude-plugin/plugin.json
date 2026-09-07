@@ -1,10 +1,11 @@
 {
   "name": "neetoplanner",
-  "description": "NeetoPlanner CLI",
+  "description": "manage projects, lists and todos from the terminal",
   "author": {
     "name": "BigBinary",
     "email": "support@bigbinary.com"
   },
   "homepage": "https://github.com/neetozone/neeto-planner-cli",
-  "repository": "https://github.com/neetozone/neeto-planner-cli"
+  "repository": "https://github.com/neetozone/neeto-planner-cli",
+  "license": "MIT"
 }

@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/neetozone/neeto-planner-cli/internal/auth"
 )
 
 const defaultsFile = "defaults.json"
+
+type DirFunc func() (string, error)
 
 // Defaults holds the preferences scoped to a single subdomain.
 type Defaults struct {
@@ -23,16 +23,16 @@ type Store struct {
 	Subdomains map[string]Defaults `json:"subdomains"`
 }
 
-func defaultsFilePath() (string, error) {
-	dir, err := auth.ConfigDir()
+func defaultsFilePath(configDir DirFunc) (string, error) {
+	dir, err := configDir()
 	if err != nil {
 		return "", err
 	}
 	return filepath.Join(dir, defaultsFile), nil
 }
 
-func Load() (*Store, error) {
-	path, err := defaultsFilePath()
+func Load(configDir DirFunc) (*Store, error) {
+	path, err := defaultsFilePath(configDir)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func Load() (*Store, error) {
 	return &store, nil
 }
 
-func Save(store *Store) error {
-	path, err := defaultsFilePath()
+func Save(configDir DirFunc, store *Store) error {
+	path, err := defaultsFilePath(configDir)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func Save(store *Store) error {
 		return nil
 	}
 
-	dir, err := auth.ConfigDir()
+	dir, err := configDir()
 	if err != nil {
 		return err
 	}
