@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/neetozone/neeto-planner-cli/internal/output"
+	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
 )
 
@@ -97,5 +97,5 @@ func init() {
 	addVerboseFlag(listsShowCmd)
 	listsCmd.AddCommand(listsShowCmd)
 
-	rootCmd.AddCommand(listsCmd)
+	register(func(root *cobra.Command) { root.AddCommand(listsCmd) })
 }

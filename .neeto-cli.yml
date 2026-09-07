@@ -1,0 +1,11 @@
+pretty_name: NeetoPlanner
+binary_name: neetoplanner
+short_description: manage projects, lists and todos from the terminal
+long_description: A command-line interface for NeetoPlanner. Manage projects, lists and todos, and set per-workspace defaults.
+api_base_path: /api/external/v1
+root_examples:
+  - neetoplanner projects list
+  - neetoplanner todos list
+  - neetoplanner todos create "Ship it"
+priority_fields: [name, title, status, completed, list_name, project_name, kind, type, due_date, created_at]
+commons_version: v1.0.1

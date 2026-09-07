@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+func testDir(t *testing.T) DirFunc {
+	t.Helper()
+	dir := t.TempDir()
+	return func() (string, error) { return dir, nil }
+}
+
 func TestStore_SetAndUnsetDefaultProject(t *testing.T) {
 	store := &Store{Subdomains: map[string]Defaults{}}
 
@@ -35,9 +41,9 @@ func TestStore_ForUnknownSubdomain(t *testing.T) {
 }
 
 func TestLoadAndSave_RoundTrip(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	dir := testDir(t)
 
-	store, err := Load()
+	store, err := Load(dir)
 	if err != nil {
 		t.Fatalf("Load on a fresh home: %v", err)
 	}
@@ -46,11 +52,11 @@ func TestLoadAndSave_RoundTrip(t *testing.T) {
 	}
 
 	store.SetDefaultProject("acme", "engineering")
-	if err := Save(store); err != nil {
+	if err := Save(dir, store); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	reloaded, err := Load()
+	reloaded, err := Load(dir)
 	if err != nil {
 		t.Fatalf("Load after Save: %v", err)
 	}
@@ -60,15 +66,15 @@ func TestLoadAndSave_RoundTrip(t *testing.T) {
 }
 
 func TestSave_RemovesFileWhenEmpty(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	dir := testDir(t)
 
 	store := &Store{Subdomains: map[string]Defaults{}}
 	store.SetDefaultProject("acme", "engineering")
-	if err := Save(store); err != nil {
+	if err := Save(dir, store); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	path, err := defaultsFilePath()
+	path, err := defaultsFilePath(dir)
 	if err != nil {
 		t.Fatalf("defaultsFilePath: %v", err)
 	}
@@ -77,7 +83,7 @@ func TestSave_RemovesFileWhenEmpty(t *testing.T) {
 	}
 
 	store.UnsetDefaultProject("acme")
-	if err := Save(store); err != nil {
+	if err := Save(dir, store); err != nil {
 		t.Fatalf("Save after unset: %v", err)
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -86,15 +92,15 @@ func TestSave_RemovesFileWhenEmpty(t *testing.T) {
 }
 
 func TestSave_FileIsNotWorldReadable(t *testing.T) {
-	t.Setenv("HOME", t.TempDir())
+	dir := testDir(t)
 
 	store := &Store{Subdomains: map[string]Defaults{}}
 	store.SetDefaultProject("acme", "engineering")
-	if err := Save(store); err != nil {
+	if err := Save(dir, store); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	path, err := defaultsFilePath()
+	path, err := defaultsFilePath(dir)
 	if err != nil {
 		t.Fatalf("defaultsFilePath: %v", err)
 	}

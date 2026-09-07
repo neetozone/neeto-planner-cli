@@ -8,7 +8,7 @@
     {
       "name": "neetoplanner",
       "source": "./",
-      "description": "NeetoPlanner CLI"
+      "description": "manage projects, lists and todos from the terminal"
     }
   ]
 }

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/neetozone/neeto-planner-cli/internal/output"
+	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
 )
 
@@ -54,5 +54,5 @@ func init() {
 	projectsListCmd.Flags().Bool("all", false, "List all projects regardless of kind")
 	projectsListCmd.MarkFlagsMutuallyExclusive("template", "archived", "trashed", "all")
 
-	rootCmd.AddCommand(projectsCmd)
+	register(func(root *cobra.Command) { root.AddCommand(projectsCmd) })
 }

@@ -4,7 +4,22 @@ import (
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/neetozone/neeto-cli-commons/cli"
+	"github.com/neetozone/neeto-cli-commons/config"
+	product "github.com/neetozone/neeto-planner-cli"
 )
+
+func testRoot(t *testing.T) *cobra.Command {
+	t.Helper()
+	cfg, err := config.Parse(product.ConfigYAML)
+	if err != nil {
+		t.Fatalf("config.Parse: %v", err)
+	}
+	a := cli.New(*cfg)
+	Register(a)
+	return a.Root()
+}
 
 func findCommand(root *cobra.Command, path ...string) *cobra.Command {
 	current := root
@@ -36,8 +51,9 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 		{"config", "set"},
 	}
 
+	root := testRoot(t)
 	for _, path := range paths {
-		if findCommand(rootCmd, path...) == nil {
+		if findCommand(root, path...) == nil {
 			t.Errorf("command %v is not registered", path)
 		}
 	}
@@ -50,8 +66,9 @@ func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 		{"todos", "create"},
 	}
 
+	root := testRoot(t)
 	for _, path := range paths {
-		cmd := findCommand(rootCmd, path...)
+		cmd := findCommand(root, path...)
 		if cmd == nil {
 			t.Fatalf("command %v is not registered", path)
 		}
@@ -62,7 +79,7 @@ func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 }
 
 func TestTodosCreate_TakesPositionalTitle(t *testing.T) {
-	cmd := findCommand(rootCmd, "todos", "create")
+	cmd := findCommand(testRoot(t), "todos", "create")
 	if cmd == nil {
 		t.Fatal("todos create is not registered")
 	}

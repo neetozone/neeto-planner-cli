@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/neetozone/neeto-planner-cli/internal/output"
+	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +72,7 @@ var todosCreateCmd = &cobra.Command{
 }
 
 var todosUpdateCmd = &cobra.Command{
-	Use:   "update <handle>",
+	Use:   "update <id>",
 	Short: "Update a todo",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,7 +84,7 @@ var todosUpdateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		handle := args[0]
+		id := args[0]
 
 		todo := map[string]interface{}{}
 		if cmd.Flags().Changed("title") {
@@ -99,11 +99,11 @@ var todosUpdateCmd = &cobra.Command{
 		}
 
 		if len(todo) == 0 {
-			return fmt.Errorf("no fields to update; pass --title, --completed, or --pending")
+			return fmt.Errorf("No fields to update. Pass --title, --completed, or --pending.")
 		}
 
 		body := map[string]interface{}{"todo": todo}
-		data, err := c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, handle), body)
+		data, err := c.Put(fmt.Sprintf("/projects/%s/todos/%s", projectSid, id), body)
 		if err != nil {
 			return err
 		}
@@ -154,5 +154,5 @@ func init() {
 	todosCmd.AddCommand(todosUpdateCmd)
 	todosCmd.AddCommand(todosDoneCmd)
 
-	rootCmd.AddCommand(todosCmd)
+	register(func(root *cobra.Command) { root.AddCommand(todosCmd) })
 }

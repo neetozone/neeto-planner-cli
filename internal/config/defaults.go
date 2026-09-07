@@ -1,5 +1,3 @@
-// Package config persists non-credential CLI preferences, such as the default
-// project used when a command is run without an explicit --project.
 package config
 
 import (
@@ -7,32 +5,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/neetozone/neeto-planner-cli/internal/auth"
 )
 
 const defaultsFile = "defaults.json"
 
-// Defaults holds the preferences scoped to a single subdomain.
+type DirFunc func() (string, error)
+
 type Defaults struct {
 	DefaultProject string `json:"default_project,omitempty"`
 }
 
-// Store maps a subdomain to its preferences.
 type Store struct {
 	Subdomains map[string]Defaults `json:"subdomains"`
 }
 
-func defaultsFilePath() (string, error) {
-	dir, err := auth.ConfigDir()
+func defaultsFilePath(configDir DirFunc) (string, error) {
+	dir, err := configDir()
 	if err != nil {
 		return "", err
 	}
 	return filepath.Join(dir, defaultsFile), nil
 }
 
-func Load() (*Store, error) {
-	path, err := defaultsFilePath()
+func Load(configDir DirFunc) (*Store, error) {
+	path, err := defaultsFilePath(configDir)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +51,8 @@ func Load() (*Store, error) {
 	return &store, nil
 }
 
-func Save(store *Store) error {
-	path, err := defaultsFilePath()
+func Save(configDir DirFunc, store *Store) error {
+	path, err := defaultsFilePath(configDir)
 	if err != nil {
 		return err
 	}
@@ -68,7 +64,7 @@ func Save(store *Store) error {
 		return nil
 	}
 
-	dir, err := auth.ConfigDir()
+	dir, err := configDir()
 	if err != nil {
 		return err
 	}

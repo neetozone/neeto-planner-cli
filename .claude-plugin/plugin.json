@@ -1,6 +1,6 @@
 {
   "name": "neetoplanner",
-  "description": "NeetoPlanner CLI",
+  "description": "manage projects, lists and todos from the terminal",
   "author": {
     "name": "BigBinary",
     "email": "support@bigbinary.com"
