@@ -8,4 +8,4 @@ root_examples:
   - neetoplanner todos list
   - neetoplanner todos create "Ship it"
 priority_fields: [name, title, status, completed, list_name, project_name, kind, type, due_date, created_at]
-commons_version: v1.0.2
+commons_version: v1.0.4
