@@ -131,8 +131,8 @@ stderr. Common errors the agent should expect:
 
 The resource commands are registered with their final names, flags and help
 text. `projects list`, `lists list`, `lists show`, `todos list`, `todos
-create`, `todos update` and `config set default-project` call the API. `todos
-show` and `todos done` are not wired up yet — each exits non-zero with a
+update` and `config set default-project` call the API. `todos show`, `todos
+create` and `todos done` are not wired up yet — each exits non-zero with a
 message naming the endpoint it waits on. Do not treat those failures as bugs
 or try to work around them.
 
@@ -148,33 +148,8 @@ neetoplanner todos done <id>
 neetoplanner config set default-project <p>
 ```
 
-`--project` takes a project SID, resolved as: `--project` flag, then
+`--project` takes a name or an ID, resolved as: `--project` flag, then
 `NEETOPLANNER_PROJECT`, then the per-subdomain default from
 `neetoplanner config set default-project`.
-
-### Creating todos
-
-```bash
-neetoplanner todos create "Promote the changelog" --project <project-sid> \
-  --list <list-sid> --description "Post on X, LinkedIn and the Neeto community." \
-  --idempotency-key "engage:<workspace-id>:<post-id>:published" --json
-```
-
-`--list` accepts a list SID, not a name. Omit it to create a todo without a list.
-`--description` and `--idempotency-key` are optional. Assignee and due-date flags
-are not supported on create. Project and list SIDs come from their list commands.
-
-The JSON envelope's `data` includes the todo's UUID `id`, numeric `handle`,
-`name`, `description` and `url`. `--quiet` prints the UUID; use `handle` with
-`todos update`.
-
-For webhook processing, use one stable key per event and reuse it on retries.
-Keys are project-scoped and limited to 255 characters. Reusing a key returns
-the same todo without changing its contents, including under concurrent calls.
-Without a key, each call creates a new todo. Permanent deletion or moving the
-todo removes deduplication from that project. Clones do not inherit keys.
-
-The server must have the external todo create endpoint and its migration deployed
-before using this command.
 
 Run `neetoplanner commands` for the current machine-readable catalog.
