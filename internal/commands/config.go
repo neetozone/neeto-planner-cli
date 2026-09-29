@@ -18,7 +18,7 @@ var configSetCmd = &cobra.Command{
 	Use:     "set <key> <value>",
 	Short:   "Set a preference",
 	Args:    cobra.ExactArgs(2),
-	Example: "  $ neetoplanner config set default-project engineering",
+	Example: "  $ neetoplanner config set default-project <project-sid>",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if args[0] != defaultProjectKey {
 			return unknownConfigKey(args[0])

@@ -62,12 +62,39 @@ var todosCreateCmd = &cobra.Command{
 	Use:     "create <title>",
 	Short:   "Create a todo",
 	Args:    cobra.ExactArgs(1),
-	Example: "  $ neetoplanner todos create \"Ship the CLI\" --project engineering",
+	Example: "  $ neetoplanner todos create \"Promote the changelog\" --project <project-sid> --list <list-sid>",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if _, err := resolveProject(cmd); err != nil {
+		c, err := getClient(cmd)
+		if err != nil {
 			return err
 		}
-		return notImplemented("POST /projects/:project_id/todos")
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
+		}
+
+		todo := map[string]interface{}{"name": args[0]}
+		for flag, field := range map[string]string{
+			"description":     "description",
+			"list":            "list_sid",
+			"idempotency-key": "external_idempotency_key",
+		} {
+			if cmd.Flags().Changed(flag) {
+				value, _ := cmd.Flags().GetString(flag)
+				todo[field] = value
+			}
+		}
+
+		data, err := c.Post(fmt.Sprintf("/projects/%s/todos", projectSid), map[string]interface{}{"todo": todo})
+		if err != nil {
+			return err
+		}
+
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List todos", Command: fmt.Sprintf("neetoplanner todos list --project %s", projectSid)},
+		}
+		printActionResult(data, breadcrumbs)
+		return nil
 	},
 }
 
@@ -137,8 +164,8 @@ func init() {
 
 	addProjectFlag(todosCreateCmd)
 	addListFlag(todosCreateCmd)
-	todosCreateCmd.Flags().String("assignee", "", "Assignee email")
-	todosCreateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
+	todosCreateCmd.Flags().String("description", "", "Todo description")
+	todosCreateCmd.Flags().String("idempotency-key", "", "Stable event key to reuse when retrying creation")
 
 	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")

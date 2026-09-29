@@ -24,7 +24,7 @@ func pickProject(flagValue, envValue, configValue string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf(
-		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <name-or-sid>",
+		"No project specified. Pass --project, set %s, or run:\n  neetoplanner config set default-project <sid>",
 		projectEnvVar,
 	)
 }
@@ -59,9 +59,9 @@ func resolveProject(cmd *cobra.Command) (string, error) {
 }
 
 func addProjectFlag(cmd *cobra.Command) {
-	cmd.Flags().String("project", "", "Project name or ID (defaults to "+projectEnvVar+" or the saved default)")
+	cmd.Flags().String("project", "", "Project SID (defaults to "+projectEnvVar+" or the saved default)")
 }
 
 func addListFlag(cmd *cobra.Command) {
-	cmd.Flags().String("list", "", "List name or ID")
+	cmd.Flags().String("list", "", "List SID")
 }
