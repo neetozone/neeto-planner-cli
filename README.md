@@ -3,18 +3,19 @@
 A command-line interface for NeetoPlanner. Manage projects, lists and todos, and set per-workspace defaults.
 
 > **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
-> `completion` and `setup` work today. The `projects`, `lists` and `todos`
-> commands are registered with their final flags and help text, but each one
-> exits with a message naming the endpoint it is waiting on — the NeetoPlanner
-> external API is still being built. Track
-> [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
+> `completion` and `setup` work today. `projects list`, `lists list`, `lists show`,
+> `todos list`, `todos create`, `todos update` and project defaults are wired to
+> the API. `todos show` and `todos done` still exit with a message naming the
+> endpoint they are waiting on. Track
+> [neeto-planner-web#12900](https://github.com/neetozone/neeto-planner-web/issues/12900).
 
 ## Command reference
 
 ```
 neetoplanner projects list
 neetoplanner lists list [--project <p>]
-neetoplanner todos list [--project <p>] [--list <l>]
+neetoplanner lists show <sid> [--project <p>]
+neetoplanner todos list [--project <p>]
 neetoplanner todos show <id>
 neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
 neetoplanner todos update <id> [--title ...]
@@ -22,9 +23,35 @@ neetoplanner todos done <id>
 neetoplanner config set default-project <p>
 ```
 
-`--project` accepts a project name or ID. Commands resolve it in this order:
+`--project` accepts a project SID. Commands resolve it in this order:
 the `--project` flag, then `NEETOPLANNER_PROJECT`, then the default saved per
 subdomain by `neetoplanner config set default-project`.
+
+### Create a promotion todo
+
+Find the project and list SIDs using `projects list` and `lists list`, then run:
+
+```bash
+neetoplanner todos create "Promote the NeetoCal changelog" \
+  --project <project-sid> --list <list-sid> \
+  --description "Post on X, LinkedIn and the Neeto community. https://app.neetocal.com/changelog" \
+  --idempotency-key "engage:<workspace-id>:<post-id>:published" --json
+```
+
+`--list` takes a list SID and is optional; omitting it creates a todo without a
+list. `--description` is optional. `--json` returns the todo under `data`,
+including its UUID `id`, numeric `handle`, and `url`. `--quiet` prints only the UUID.
+Use the numeric handle with `todos update`.
+
+Reuse the same `--idempotency-key` when retrying one event. Concurrent requests
+with the same key and project return the same todo without overwriting it.
+Keys are limited to 255 characters. Without a key, each call creates a new todo.
+Permanently deleting or moving the todo removes deduplication from that project;
+clones do not inherit keys. Assignee and due-date options are not supported by
+`todos create`.
+
+This command requires Planner's external todo creation API. Deploy the API and
+its migration before releasing this CLI version.
 
 <!-- neeto-cli-commons:installation:start -->
 ## Installation
