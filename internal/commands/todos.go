@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
@@ -114,9 +115,24 @@ var todosUpdateCmd = &cobra.Command{
 		id := args[0]
 
 		todo := map[string]interface{}{}
-		if cmd.Flags().Changed("title") {
-			title, _ := cmd.Flags().GetString("title")
-			todo["name"] = title
+		for flag, field := range map[string]string{
+			"title":    "name",
+			"assignee": "assignee_email",
+			"due":      "due_date",
+		} {
+			if !cmd.Flags().Changed(flag) {
+				continue
+			}
+			value, err := cmd.Flags().GetString(flag)
+			if err != nil {
+				return err
+			}
+			if flag == "due" && value != "" {
+				if _, err := time.Parse(time.DateOnly, value); err != nil {
+					return fmt.Errorf("--due must be a valid date in YYYY-MM-DD format: %q", value)
+				}
+			}
+			todo[field] = value
 		}
 		if cmd.Flags().Changed("completed") {
 			todo["completed"] = true
@@ -126,7 +142,7 @@ var todosUpdateCmd = &cobra.Command{
 		}
 
 		if len(todo) == 0 {
-			return fmt.Errorf("No fields to update. Pass --title, --completed, or --pending.")
+			return fmt.Errorf("No fields to update. Pass --title, --assignee, --due, --completed, or --pending.")
 		}
 
 		body := map[string]interface{}{"todo": todo}
@@ -169,8 +185,8 @@ func init() {
 
 	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")
-	todosUpdateCmd.Flags().String("assignee", "", "Assignee email")
-	todosUpdateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD)")
+	todosUpdateCmd.Flags().String("assignee", "", "Replace assignees with this project member's email (empty clears)")
+	todosUpdateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD; empty clears)")
 	todosUpdateCmd.Flags().Bool("completed", false, "Mark as completed")
 	todosUpdateCmd.Flags().Bool("pending", false, "Mark as pending")
 	todosUpdateCmd.MarkFlagsMutuallyExclusive("pending", "completed")
