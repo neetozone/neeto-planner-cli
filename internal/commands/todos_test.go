@@ -17,10 +17,10 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func testTodosCreate(t *testing.T, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
+func testTodosCommand(t *testing.T, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
 	t.Helper()
 	root := testRoot(t)
-	cmd := findCommand(root, "todos", "create")
+	cmd := findCommand(root, "todos", command)
 	resetFlags := func() {
 		cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 			if err := flag.Value.Set(flag.DefValue); err != nil {
@@ -61,7 +61,7 @@ func testTodosCreate(t *testing.T, handler http.HandlerFunc) (*cobra.Command, *b
 
 func TestTodosCreate_PostsTitleDescriptionListAndIdempotencyKey(t *testing.T) {
 	description := "Post on X and LinkedIn.\nCommunity: https://community.neeto.com"
-	root, out := testTodosCreate(t, func(w http.ResponseWriter, r *http.Request) {
+	root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/marpro-sid/todos" {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
@@ -108,7 +108,7 @@ func TestTodosCreate_PostsTitleDescriptionListAndIdempotencyKey(t *testing.T) {
 }
 
 func TestTodosCreate_UsesEnvironmentProjectAndPrintsQuietIdentifier(t *testing.T) {
-	root, out := testTodosCreate(t, func(w http.ResponseWriter, r *http.Request) {
+	root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/external/v1/projects/from-env/todos" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
@@ -132,7 +132,7 @@ func TestTodosCreate_UsesEnvironmentProjectAndPrintsQuietIdentifier(t *testing.T
 }
 
 func TestTodosCreate_UsesSavedDefaultProject(t *testing.T) {
-	root, _ := testTodosCreate(t, func(w http.ResponseWriter, r *http.Request) {
+	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/external/v1/projects/saved-project/todos" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
@@ -152,7 +152,7 @@ func TestTodosCreate_UsesSavedDefaultProject(t *testing.T) {
 func TestTodosCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 	for _, status := range []int{http.StatusForbidden, http.StatusUnprocessableEntity} {
 		t.Run(http.StatusText(status), func(t *testing.T) {
-			root, out := testTodosCreate(t, func(w http.ResponseWriter, r *http.Request) {
+			root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(status)
 				_, _ = w.Write([]byte(`{"error":"Cannot create this todo"}`))
 			})
@@ -169,11 +169,137 @@ func TestTodosCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 }
 
 func TestTodosCreate_RequiresAProjectBeforeSendingARequest(t *testing.T) {
-	root, _ := testTodosCreate(t, func(w http.ResponseWriter, r *http.Request) {
+	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		t.Error("create should not send a request without a project")
 	})
 	root.SetArgs([]string{"todos", "create", "Ship it"})
 	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "No project specified") {
 		t.Errorf("expected missing project error, got: %v", err)
+	}
+}
+
+func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
+	tests := []struct {
+		name  string
+		flags []string
+		want  map[string]any
+	}{
+		{
+			name:  "assignee",
+			flags: []string{"--assignee", "member@example.com"},
+			want:  map[string]any{"assignee_email": "member@example.com"},
+		},
+		{
+			name:  "due date",
+			flags: []string{"--due", "2028-02-29"},
+			want:  map[string]any{"due_date": "2028-02-29"},
+		},
+		{
+			name:  "clear assignee",
+			flags: []string{"--assignee", ""},
+			want:  map[string]any{"assignee_email": ""},
+		},
+		{
+			name:  "clear due date",
+			flags: []string{"--due", ""},
+			want:  map[string]any{"due_date": ""},
+		},
+		{
+			name:  "reopen",
+			flags: []string{"--pending"},
+			want:  map[string]any{"completed": false},
+		},
+		{
+			name: "combined changes",
+			flags: []string{
+				"--title", "Updated", "--assignee", "member@example.com", "--due", "2026-10-10", "--completed",
+			},
+			want: map[string]any{
+				"name": "Updated", "assignee_email": "member@example.com", "due_date": "2026-10-10", "completed": true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requests := 0
+			root, out := testTodosCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
+				requests++
+				if r.Method != http.MethodPut || r.URL.Path != "/api/external/v1/projects/project-sid/todos/42" {
+					t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+				}
+				if r.Header.Get("Session-Token") != "test-session-token" {
+					t.Error("missing CLI session token")
+				}
+				var body map[string]map[string]any
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Errorf("decode body: %v", err)
+				}
+				if !reflect.DeepEqual(body, map[string]map[string]any{"todo": tt.want}) {
+					t.Errorf("body = %#v, want only %#v", body, tt.want)
+				}
+				_, _ = w.Write([]byte(`{"handle":42,"name":"Updated"}`))
+			})
+			args := []string{"todos", "update", "42", "--project", "project-sid", "--json"}
+			root.SetArgs(append(args, tt.flags...))
+			if err := root.Execute(); err != nil {
+				t.Fatal(err)
+			}
+			if requests != 1 {
+				t.Errorf("requests = %d, want 1", requests)
+			}
+			if !json.Valid(out.Bytes()) {
+				t.Errorf("output is not JSON: %q", out.String())
+			}
+		})
+	}
+}
+
+func TestTodosUpdate_RejectsInvalidDatesBeforeSendingARequest(t *testing.T) {
+	for _, due := range []string{"2026-02-30", "2026-2-3", "tomorrow", "2026-10-10T00:00:00Z"} {
+		t.Run(due, func(t *testing.T) {
+			root, out := testTodosCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
+				t.Error("invalid date should not send a request")
+			})
+			root.SetArgs([]string{
+				"todos", "update", "42", "--project", "project-sid", "--title", "Updated", "--due", due,
+			})
+			if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "YYYY-MM-DD") {
+				t.Errorf("expected invalid date error, got: %v", err)
+			}
+			if out.Len() != 0 {
+				t.Errorf("invalid update printed success: %q", out.String())
+			}
+		})
+	}
+}
+
+func TestTodosUpdate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
+	for _, status := range []int{http.StatusForbidden, http.StatusUnprocessableEntity} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			root, out := testTodosCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(status)
+				_, _ = w.Write([]byte(`{"error":"Assignee is not a project member"}`))
+			})
+			root.SetArgs([]string{
+				"todos", "update", "42", "--project", "project-sid", "--assignee", "outsider@example.com",
+			})
+			if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "Assignee is not a project member") {
+				t.Errorf("expected API error, got: %v", err)
+			}
+			if out.Len() != 0 {
+				t.Errorf("failed update printed success: %q", out.String())
+			}
+		})
+	}
+}
+
+func TestTodosUpdate_RequiresAChange(t *testing.T) {
+	root, _ := testTodosCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
+		t.Error("empty update should not send a request")
+	})
+	root.SetArgs([]string{"todos", "update", "42", "--project", "project-sid"})
+	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "No fields to update") {
+		t.Errorf("expected missing fields error, got: %v", err)
 	}
 }
