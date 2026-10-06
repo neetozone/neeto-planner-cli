@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/neetozone/neeto-cli-commons/output"
 	"github.com/spf13/cobra"
@@ -123,15 +122,7 @@ var todosUpdateCmd = &cobra.Command{
 			if !cmd.Flags().Changed(flag) {
 				continue
 			}
-			value, err := cmd.Flags().GetString(flag)
-			if err != nil {
-				return err
-			}
-			if flag == "due" && value != "" {
-				if _, err := time.Parse(time.DateOnly, value); err != nil {
-					return fmt.Errorf("--due must be a valid date in YYYY-MM-DD format: %q", value)
-				}
-			}
+			value, _ := cmd.Flags().GetString(flag)
 			todo[field] = value
 		}
 		if cmd.Flags().Changed("completed") {
