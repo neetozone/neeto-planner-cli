@@ -70,7 +70,7 @@ func testTodosCommand(t *testing.T, command string, handler http.HandlerFunc) (*
 	return root, &out
 }
 
-func TestTodosCreate_PostsTitleDescriptionListAndIdempotencyKey(t *testing.T) {
+func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 	description := "Post on X and LinkedIn.\nCommunity: https://community.neeto.com"
 	root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/marpro-sid/todos" {
@@ -89,6 +89,7 @@ func TestTodosCreate_PostsTitleDescriptionListAndIdempotencyKey(t *testing.T) {
 		want := map[string]map[string]string{"todo": {
 			"name": "Promote the changelog", "description": description,
 			"list_sid": "backlog-sid", "external_idempotency_key": "engage:post-1",
+			"assignee_email": "member@example.com", "due_date": "2028-02-29",
 		}}
 		if !reflect.DeepEqual(body, want) {
 			t.Errorf("body = %#v, want %#v", body, want)
@@ -99,7 +100,8 @@ func TestTodosCreate_PostsTitleDescriptionListAndIdempotencyKey(t *testing.T) {
 	})
 
 	root.SetArgs([]string{"todos", "create", "Promote the changelog", "--project", "marpro-sid",
-		"--list", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1", "--json"})
+		"--list", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1",
+		"--assignee", "member@example.com", "--due", "2028-02-29", "--json"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}

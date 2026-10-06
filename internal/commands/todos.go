@@ -78,6 +78,8 @@ var todosCreateCmd = &cobra.Command{
 			"description":     "description",
 			"list":            "list_sid",
 			"idempotency-key": "external_idempotency_key",
+			"assignee":        "assignee_email",
+			"due":             "due_date",
 		} {
 			if cmd.Flags().Changed(flag) {
 				value, _ := cmd.Flags().GetString(flag)
@@ -173,6 +175,8 @@ func init() {
 	addListFlag(todosCreateCmd)
 	todosCreateCmd.Flags().String("description", "", "Todo description")
 	todosCreateCmd.Flags().String("idempotency-key", "", "Stable event key to reuse when retrying creation")
+	todosCreateCmd.Flags().String("assignee", "", "Email of the project member to assign")
+	todosCreateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD; empty skips the dependency mode default)")
 
 	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")
