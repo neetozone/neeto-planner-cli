@@ -66,7 +66,7 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 				t.Errorf("requests = %d, want 1", requests)
 			}
 			switch tt.output {
-			case "--json":
+			case "--json", "":
 				var result struct {
 					Data struct {
 						SID  string `json:"sid"`
@@ -83,7 +83,8 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 				if out.String() != "list-sid\n" {
 					t.Errorf("quiet output = %q", out.String())
 				}
-			default:
+			}
+			if tt.output == "" {
 				for _, value := range []string{"Backlog", "list-sid", "neetoplanner lists list --project saved-project"} {
 					if !strings.Contains(out.String(), value) {
 						t.Errorf("output missing %q: %q", value, out.String())
@@ -95,14 +96,22 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 }
 
 func TestListsCreate_RequiresANameAndProjectBeforeRequest(t *testing.T) {
-	for _, args := range [][]string{{"lists", "create"}, {"lists", "create", "one", "two"}, {"lists", "create", "Backlog"}} {
-		t.Run(strings.Join(args, " "), func(t *testing.T) {
+	tests := []struct {
+		args      []string
+		wantError string
+	}{
+		{[]string{"lists", "create"}, "accepts 1 arg(s), received 0"},
+		{[]string{"lists", "create", "one", "two"}, "accepts 1 arg(s), received 2"},
+		{[]string{"lists", "create", "Backlog"}, "No project specified"},
+	}
+	for _, tt := range tests {
+		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
 			root, out := testResourceCommand(t, "lists", "create", func(w http.ResponseWriter, r *http.Request) {
 				t.Error("invalid arguments should not send a request")
 			})
-			root.SetArgs(args)
-			if err := root.Execute(); err == nil {
-				t.Error("expected an error")
+			root.SetArgs(tt.args)
+			if err := root.Execute(); err == nil || !strings.Contains(err.Error(), tt.wantError) {
+				t.Errorf("expected error containing %q, got %v", tt.wantError, err)
 			}
 			if out.Len() != 0 {
 				t.Errorf("unexpected success output: %q", out.String())
