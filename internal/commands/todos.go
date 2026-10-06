@@ -87,6 +87,10 @@ var todosCreateCmd = &cobra.Command{
 			}
 		}
 
+		if cmd.Flags().Changed("tags") {
+			todo["tags"], _ = cmd.Flags().GetStringSlice("tags")
+		}
+
 		data, err := c.Post(fmt.Sprintf("/projects/%s/todos", projectSid), map[string]interface{}{"todo": todo})
 		if err != nil {
 			return err
@@ -133,9 +137,12 @@ var todosUpdateCmd = &cobra.Command{
 		if cmd.Flags().Changed("pending") {
 			todo["completed"] = false
 		}
+		if cmd.Flags().Changed("tags") {
+			todo["tags"], _ = cmd.Flags().GetStringSlice("tags")
+		}
 
 		if len(todo) == 0 {
-			return fmt.Errorf("No fields to update. Pass --title, --assignee, --due, --completed, or --pending.")
+			return fmt.Errorf("No fields to update. Pass --title, --assignee, --due, --tags, --completed, or --pending.")
 		}
 
 		body := map[string]interface{}{"todo": todo}
@@ -177,11 +184,13 @@ func init() {
 	todosCreateCmd.Flags().String("idempotency-key", "", "Stable event key to reuse when retrying creation")
 	todosCreateCmd.Flags().String("assignee", "", "Email of the project member to assign")
 	todosCreateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD; empty skips the dependency mode default)")
+	todosCreateCmd.Flags().StringSlice("tags", []string{}, "Existing project tag names, separated by commas")
 
 	addProjectFlag(todosUpdateCmd)
 	todosUpdateCmd.Flags().String("title", "", "New title")
 	todosUpdateCmd.Flags().String("assignee", "", "Replace assignees with this project member's email (empty clears)")
 	todosUpdateCmd.Flags().String("due", "", "Due date (YYYY-MM-DD; empty clears)")
+	todosUpdateCmd.Flags().StringSlice("tags", []string{}, "Project tag names (comma-separated; replaces tags; empty clears)")
 	todosUpdateCmd.Flags().Bool("completed", false, "Mark as completed")
 	todosUpdateCmd.Flags().Bool("pending", false, "Mark as pending")
 	todosUpdateCmd.MarkFlagsMutuallyExclusive("pending", "completed")

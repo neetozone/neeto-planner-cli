@@ -29,7 +29,13 @@ func testTodosCommand(t *testing.T, command string, handler http.HandlerFunc) (*
 	cmd := findCommand(root, "todos", command)
 	resetFlags := func() {
 		cmd.Flags().VisitAll(func(flag *pflag.Flag) {
-			if err := flag.Value.Set(flag.DefValue); err != nil {
+			var err error
+			if slice, ok := flag.Value.(pflag.SliceValue); ok {
+				err = slice.Replace([]string{})
+			} else {
+				err = flag.Value.Set(flag.DefValue)
+			}
+			if err != nil {
 				t.Fatalf("reset %s: %v", flag.Name, err)
 			}
 			flag.Changed = false
@@ -82,14 +88,15 @@ func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 		if r.Header.Get("Content-Type") != "application/json" {
 			t.Error("request should contain JSON")
 		}
-		var body map[string]map[string]string
+		var body map[string]map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("decode body: %v", err)
 		}
-		want := map[string]map[string]string{"todo": {
+		want := map[string]map[string]any{"todo": {
 			"name": "Promote the changelog", "description": description,
 			"list_sid": "backlog-sid", "external_idempotency_key": "engage:post-1",
 			"assignee_email": "member@example.com", "due_date": "2028-02-29",
+			"tags": []any{"Urgent", "Review"},
 		}}
 		if !reflect.DeepEqual(body, want) {
 			t.Errorf("body = %#v, want %#v", body, want)
@@ -101,7 +108,7 @@ func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 
 	root.SetArgs([]string{"todos", "create", "Promote the changelog", "--project", "marpro-sid",
 		"--list", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1",
-		"--assignee", "member@example.com", "--due", "2028-02-29", "--json"})
+		"--assignee", "member@example.com", "--due", "2028-02-29", "--tags", "Urgent,Review", "--json"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}
@@ -213,12 +220,25 @@ func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 			want:  map[string]any{"assignee_email": "", "due_date": ""},
 		},
 		{
+			name:  "multiple tags",
+			flags: []string{"--tags", "Urgent,Review", "--tags", "Urgent"},
+			want:  map[string]any{"tags": []any{"Urgent", "Review", "Urgent"}},
+		},
+		{
+			name:  "clear tags",
+			flags: []string{"--tags", ""},
+			want:  map[string]any{"tags": []any{}},
+		},
+		{
 			name: "combined changes",
 			flags: []string{
 				"--title", "Updated", "--assignee", "member@example.com", "--due", "2026-10-10", "--completed",
+				"--tags", "Urgent",
 			},
 			want: map[string]any{
-				"name": "Updated", "assignee_email": "member@example.com", "due_date": "2026-10-10", "completed": true,
+				"name": "Updated", "assignee_email": "member@example.com",
+				"due_date": "2026-10-10", "completed": true,
+				"tags": []any{"Urgent"},
 			},
 		},
 	}
@@ -252,5 +272,23 @@ func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 				t.Errorf("output is not JSON: %q", out.String())
 			}
 		})
+	}
+}
+
+func TestTodosCreate_SendsEmptyTags(t *testing.T) {
+	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		want := map[string]map[string]any{"todo": {"name": "Ship it", "tags": []any{}}}
+		if !reflect.DeepEqual(body, want) {
+			t.Errorf("body = %#v, want %#v", body, want)
+		}
+		_, _ = w.Write([]byte(`{"id":"todo-uuid"}`))
+	})
+	root.SetArgs([]string{"todos", "create", "Ship it", "--project", "project-sid", "--tags", ""})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
 	}
 }
