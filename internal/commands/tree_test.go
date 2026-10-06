@@ -43,6 +43,7 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 	paths := [][]string{
 		{"projects", "list"},
 		{"lists", "list"},
+		{"lists", "create"},
 		{"todos", "list"},
 		{"todos", "show"},
 		{"todos", "create"},
@@ -62,6 +63,7 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 	paths := [][]string{
 		{"lists", "list"},
+		{"lists", "create"},
 		{"todos", "list"},
 		{"todos", "create"},
 	}

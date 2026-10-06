@@ -83,6 +83,37 @@ var listsShowCmd = &cobra.Command{
 	},
 }
 
+var listsCreateCmd = &cobra.Command{
+	Use:     "create <name>",
+	Short:   "Create a list in a project",
+	Long:    "Create a list (board column) in an active project. Duplicate names are allowed. Every successful call, including a retry, creates another list.",
+	Args:    cobra.ExactArgs(1),
+	Example: "  $ neetoplanner lists create \"Backlog\" --project <project-sid>",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		projectSid, err := resolveProject(cmd)
+		if err != nil {
+			return err
+		}
+		c, err := getClient(cmd)
+		if err != nil {
+			return err
+		}
+
+		data, err := c.Post(fmt.Sprintf("/projects/%s/lists", projectSid), map[string]interface{}{
+			"list": map[string]interface{}{"name": args[0]},
+		})
+		if err != nil {
+			return err
+		}
+
+		breadcrumbs := []output.Breadcrumb{
+			{Label: "List lists", Command: fmt.Sprintf("neetoplanner lists list --project %s", projectSid)},
+		}
+		printActionResult(data, breadcrumbs)
+		return nil
+	},
+}
+
 func init() {
 	addProjectFlag(listsListCmd)
 	addPaginationFlags(listsListCmd)
@@ -96,6 +127,9 @@ func init() {
 	addProjectFlag(listsShowCmd)
 	addVerboseFlag(listsShowCmd)
 	listsCmd.AddCommand(listsShowCmd)
+
+	addProjectFlag(listsCreateCmd)
+	listsCmd.AddCommand(listsCreateCmd)
 
 	register(func(root *cobra.Command) { root.AddCommand(listsCmd) })
 }

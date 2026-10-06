@@ -2,11 +2,9 @@
 
 A command-line interface for NeetoPlanner. Manage projects, lists and todos, and set per-workspace defaults.
 
-> **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
-> `completion` and `setup` work today. The `projects`, `lists` and `todos`
-> commands are registered with their final flags and help text, but each one
-> exits with a message naming the endpoint it is waiting on — the NeetoPlanner
-> external API is still being built. Track
+> **Status:** Authentication and setup commands work. `projects list`,
+> `lists list`, `lists show`, `lists create`, and `todos list/create/update`
+> use the external API. `todos show` and `todos done` remain stubs. Track
 > [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
 
 ## Command reference
@@ -14,6 +12,7 @@ A command-line interface for NeetoPlanner. Manage projects, lists and todos, and
 ```
 neetoplanner projects list
 neetoplanner lists list [--project <p>]
+neetoplanner lists create "Backlog" [--project <p>]
 neetoplanner todos list [--project <p>] [--list <l>]
 neetoplanner todos show <id>
 neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
@@ -22,7 +21,11 @@ neetoplanner todos done <id>
 neetoplanner config set default-project <p>
 ```
 
-`--project` accepts a project name or ID. Commands resolve it in this order:
+`lists create` adds a list (board column) to an active project and returns its SID
+and name. Duplicate names are allowed. Each successful call, including a retry,
+creates another list. Use the returned SID with `todos create --list`.
+
+`--project` accepts a project SID. Commands resolve it in this order:
 the `--project` flag, then `NEETOPLANNER_PROJECT`, then the default saved per
 subdomain by `neetoplanner config set default-project`.
 
