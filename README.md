@@ -2,9 +2,10 @@
 
 A command-line interface for NeetoPlanner. Manage projects, lists and todos, and set per-workspace defaults.
 
-> **Status:** Authentication and setup commands work. `projects list`,
-> `lists list`, `lists show`, `lists create`, and `todos list/create/update`
-> use the external API. `todos show` and `todos done` remain stubs. Track
+> **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
+> `completion` and `setup` work. `projects list`, `lists list`, `lists show`,
+> `lists create`, and `todos list/create/update` use the external API.
+> `todos show` and `todos done` remain stubs. Track
 > [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
 
 ## Command reference
