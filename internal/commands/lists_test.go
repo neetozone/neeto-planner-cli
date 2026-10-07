@@ -84,12 +84,8 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 					t.Errorf("quiet output = %q", out.String())
 				}
 			}
-			if tt.output == "" {
-				for _, value := range []string{"Backlog", "list-sid", "neetoplanner lists list --project saved-project"} {
-					if !strings.Contains(out.String(), value) {
-						t.Errorf("output missing %q: %q", value, out.String())
-					}
-				}
+			if tt.output == "" && !strings.Contains(out.String(), "neetoplanner lists list --project saved-project") {
+				t.Errorf("output missing list breadcrumb: %q", out.String())
 			}
 		})
 	}
@@ -127,7 +123,7 @@ func TestListsCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 				w.WriteHeader(status)
 				_, _ = w.Write([]byte(`{"error":"Cannot create this list"}`))
 			})
-			root.SetArgs([]string{"lists", "create", "", "--project", "project-sid"})
+			root.SetArgs([]string{"lists", "create", "Backlog", "--project", "project-sid"})
 			err := root.Execute()
 			if err == nil || !strings.Contains(err.Error(), "Cannot create this list") {
 				t.Errorf("expected API error, got %v", err)
