@@ -25,8 +25,13 @@ func (transport todosTransport) RoundTrip(request *http.Request) (*http.Response
 
 func testTodosCommand(t *testing.T, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
 	t.Helper()
+	return testResourceCommand(t, "todos", command, handler)
+}
+
+func testResourceCommand(t *testing.T, resource, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
+	t.Helper()
 	root := testRoot(t)
-	cmd := findCommand(root, "todos", command)
+	cmd := findCommand(root, resource, command)
 	resetFlags := func() {
 		cmd.Flags().VisitAll(func(flag *pflag.Flag) {
 			var err error
