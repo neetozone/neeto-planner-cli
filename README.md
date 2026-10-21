@@ -22,6 +22,10 @@ neetoplanner tasks done <id>
 neetoplanner config set default-project <p>
 ```
 
+The `tasks` commands replace the earlier `todos` commands, following NeetoPlanner's
+rename of todos to tasks. Scripts that call `neetoplanner todos ...` need to use
+`neetoplanner tasks ...` instead.
+
 `lists create` adds a list (board column) to an active project and returns its SID
 and name. Duplicate names are allowed. Each successful call, including a retry,
 creates another list. Use the returned SID with `tasks create --list`.
