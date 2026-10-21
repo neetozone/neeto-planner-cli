@@ -17,15 +17,15 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type todosTransport func(*http.Request) (*http.Response, error)
+type tasksTransport func(*http.Request) (*http.Response, error)
 
-func (transport todosTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+func (transport tasksTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 	return transport(request)
 }
 
-func testTodosCommand(t *testing.T, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
+func testTasksCommand(t *testing.T, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
 	t.Helper()
-	return testResourceCommand(t, "todos", command, handler)
+	return testResourceCommand(t, "tasks", command, handler)
 }
 
 func testResourceCommand(t *testing.T, resource, command string, handler http.HandlerFunc) (*cobra.Command, *bytes.Buffer) {
@@ -66,7 +66,7 @@ func testResourceCommand(t *testing.T, resource, command string, handler http.Ha
 	}
 
 	previousTransport := http.DefaultTransport
-	http.DefaultTransport = todosTransport(func(request *http.Request) (*http.Response, error) {
+	http.DefaultTransport = tasksTransport(func(request *http.Request) (*http.Response, error) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		return response.Result(), nil
@@ -81,10 +81,10 @@ func testResourceCommand(t *testing.T, resource, command string, handler http.Ha
 	return root, &out
 }
 
-func TestTodosCreate_PostsRequestedFields(t *testing.T) {
+func TestTasksCreate_PostsRequestedFields(t *testing.T) {
 	description := "Post on X and LinkedIn.\nCommunity: https://community.neeto.com"
-	root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/marpro-sid/todos" {
+	root, out := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/marpro-sid/tasks" {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
 		if r.Header.Get("Session-Token") != "test-session-token" {
@@ -97,7 +97,7 @@ func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("decode body: %v", err)
 		}
-		want := map[string]map[string]any{"todo": {
+		want := map[string]map[string]any{"task": {
 			"name": "Promote the changelog", "description": description,
 			"list_sid": "backlog-sid", "external_idempotency_key": "engage:post-1",
 			"assignee_email": "member@example.com", "due_date": "2028-02-29",
@@ -108,10 +108,10 @@ func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte(`{"id":"todo-uuid","handle":42,"name":"Promote the changelog","url":"https://acme.neetoplanner.com/r2/projects/marpro-sid/board/42"}`))
+		_, _ = w.Write([]byte(`{"id":"task-uuid","handle":42,"name":"Promote the changelog","url":"https://acme.neetoplanner.com/r2/projects/marpro-sid/board/42"}`))
 	})
 
-	root.SetArgs([]string{"todos", "create", "Promote the changelog", "--project", "marpro-sid",
+	root.SetArgs([]string{"tasks", "create", "Promote the changelog", "--project", "marpro-sid",
 		"--list", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1",
 		"--assignee", "member@example.com", "--due", "2028-02-29", "--tags", "Urgent,Review", "--json"})
 	if err := root.Execute(); err != nil {
@@ -127,63 +127,63 @@ func TestTodosCreate_PostsRequestedFields(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &result); err != nil {
 		t.Fatalf("decode output: %v", err)
 	}
-	if result.Data.ID != "todo-uuid" || result.Data.Handle != 42 || result.Data.URL == "" {
+	if result.Data.ID != "task-uuid" || result.Data.Handle != 42 || result.Data.URL == "" {
 		t.Errorf("unexpected create result: %+v", result.Data)
 	}
 }
 
-func TestTodosCreate_UsesEnvironmentProjectAndPrintsQuietIdentifier(t *testing.T) {
-	root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/external/v1/projects/from-env/todos" {
+func TestTasksCreate_UsesEnvironmentProjectAndPrintsQuietIdentifier(t *testing.T) {
+	root, out := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/external/v1/projects/from-env/tasks" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		var body map[string]map[string]string
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Errorf("decode body: %v", err)
 		}
-		if !reflect.DeepEqual(body, map[string]map[string]string{"todo": {"name": "Ship it"}}) {
+		if !reflect.DeepEqual(body, map[string]map[string]string{"task": {"name": "Ship it"}}) {
 			t.Errorf("unset options should be omitted: %#v", body)
 		}
-		_, _ = w.Write([]byte(`{"id":"todo-uuid","name":"Ship it"}`))
+		_, _ = w.Write([]byte(`{"id":"task-uuid","name":"Ship it"}`))
 	})
 	t.Setenv(projectEnvVar, "from-env")
-	root.SetArgs([]string{"todos", "create", "Ship it", "--quiet"})
+	root.SetArgs([]string{"tasks", "create", "Ship it", "--quiet"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}
-	if out.String() != "todo-uuid\n" {
-		t.Errorf("quiet output = %q, want only the todo identifier", out.String())
+	if out.String() != "task-uuid\n" {
+		t.Errorf("quiet output = %q, want only the task identifier", out.String())
 	}
 }
 
-func TestTodosCreate_UsesSavedDefaultProject(t *testing.T) {
-	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/external/v1/projects/saved-project/todos" {
+func TestTasksCreate_UsesSavedDefaultProject(t *testing.T) {
+	root, _ := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/external/v1/projects/saved-project/tasks" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
-		_, _ = w.Write([]byte(`{"id":"todo-uuid"}`))
+		_, _ = w.Write([]byte(`{"id":"task-uuid"}`))
 	})
 	store := &config.Store{}
 	store.SetDefaultProject("acme", "saved-project")
 	if err := config.Save(configDir, store); err != nil {
 		t.Fatal(err)
 	}
-	root.SetArgs([]string{"todos", "create", "Ship it"})
+	root.SetArgs([]string{"tasks", "create", "Ship it"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestTodosCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
+func TestTasksCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 	for _, status := range []int{http.StatusForbidden, http.StatusUnprocessableEntity} {
 		t.Run(http.StatusText(status), func(t *testing.T) {
-			root, out := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+			root, out := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(status)
-				_, _ = w.Write([]byte(`{"error":"Cannot create this todo"}`))
+				_, _ = w.Write([]byte(`{"error":"Cannot create this task"}`))
 			})
-			root.SetArgs([]string{"todos", "create", "Ship it", "--project", "marpro-sid"})
+			root.SetArgs([]string{"tasks", "create", "Ship it", "--project", "marpro-sid"})
 			err := root.Execute()
-			if err == nil || !strings.Contains(err.Error(), "Cannot create this todo") {
+			if err == nil || !strings.Contains(err.Error(), "Cannot create this task") {
 				t.Errorf("create should return the API error, got: %v", err)
 			}
 			if out.Len() != 0 {
@@ -193,17 +193,17 @@ func TestTodosCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 	}
 }
 
-func TestTodosCreate_RequiresAProjectBeforeSendingARequest(t *testing.T) {
-	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+func TestTasksCreate_RequiresAProjectBeforeSendingARequest(t *testing.T) {
+	root, _ := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		t.Error("create should not send a request without a project")
 	})
-	root.SetArgs([]string{"todos", "create", "Ship it"})
+	root.SetArgs([]string{"tasks", "create", "Ship it"})
 	if err := root.Execute(); err == nil || !strings.Contains(err.Error(), "No project specified") {
 		t.Errorf("expected missing project error, got: %v", err)
 	}
 }
 
-func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
+func TestTasksUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 	tests := []struct {
 		name  string
 		flags []string
@@ -251,21 +251,21 @@ func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			requests := 0
-			root, out := testTodosCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
+			root, out := testTasksCommand(t, "update", func(w http.ResponseWriter, r *http.Request) {
 				requests++
-				if r.Method != http.MethodPut || r.URL.Path != "/api/external/v1/projects/project-sid/todos/42" {
+				if r.Method != http.MethodPut || r.URL.Path != "/api/external/v1/projects/project-sid/tasks/42" {
 					t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 				}
 				var body map[string]map[string]any
 				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 					t.Errorf("decode body: %v", err)
 				}
-				if !reflect.DeepEqual(body, map[string]map[string]any{"todo": tt.want}) {
+				if !reflect.DeepEqual(body, map[string]map[string]any{"task": tt.want}) {
 					t.Errorf("body = %#v, want only %#v", body, tt.want)
 				}
 				_, _ = w.Write([]byte(`{"handle":42,"name":"Updated"}`))
 			})
-			args := []string{"todos", "update", "42", "--project", "project-sid", "--json"}
+			args := []string{"tasks", "update", "42", "--project", "project-sid", "--json"}
 			root.SetArgs(append(args, tt.flags...))
 			if err := root.Execute(); err != nil {
 				t.Fatal(err)
@@ -280,19 +280,19 @@ func TestTodosUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 	}
 }
 
-func TestTodosCreate_SendsEmptyTags(t *testing.T) {
-	root, _ := testTodosCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
+func TestTasksCreate_SendsEmptyTags(t *testing.T) {
+	root, _ := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatal(err)
 		}
-		want := map[string]map[string]any{"todo": {"name": "Ship it", "tags": []any{}}}
+		want := map[string]map[string]any{"task": {"name": "Ship it", "tags": []any{}}}
 		if !reflect.DeepEqual(body, want) {
 			t.Errorf("body = %#v, want %#v", body, want)
 		}
-		_, _ = w.Write([]byte(`{"id":"todo-uuid"}`))
+		_, _ = w.Write([]byte(`{"id":"task-uuid"}`))
 	})
-	root.SetArgs([]string{"todos", "create", "Ship it", "--project", "project-sid", "--tags", ""})
+	root.SetArgs([]string{"tasks", "create", "Ship it", "--project", "project-sid", "--tags", ""})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)
 	}

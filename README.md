@@ -1,11 +1,11 @@
 # NeetoPlanner CLI
 
-A command-line interface for NeetoPlanner. Manage projects, lists and todos, and set per-workspace defaults.
+A command-line interface for NeetoPlanner. Manage projects, lists and tasks, and set per-workspace defaults.
 
 > **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
 > `completion` and `setup` work. `projects list`, `lists list`, `lists show`,
-> `lists create`, and `todos list/create/update` use the external API.
-> `todos show` and `todos done` remain stubs. Track
+> `lists create`, and `tasks list/create/update` use the external API.
+> `tasks show` and `tasks done` remain stubs. Track
 > [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
 
 ## Command reference
@@ -14,17 +14,17 @@ A command-line interface for NeetoPlanner. Manage projects, lists and todos, and
 neetoplanner projects list
 neetoplanner lists list [--project <p>]
 neetoplanner lists create "Backlog" [--project <p>]
-neetoplanner todos list [--project <p>] [--list <l>]
-neetoplanner todos show <id>
-neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
-neetoplanner todos update <id> [--title ...]
-neetoplanner todos done <id>
+neetoplanner tasks list [--project <p>] [--list <l>]
+neetoplanner tasks show <id>
+neetoplanner tasks create "Ship it" [--project <p>] [--list <l>]
+neetoplanner tasks update <id> [--title ...]
+neetoplanner tasks done <id>
 neetoplanner config set default-project <p>
 ```
 
 `lists create` adds a list (board column) to an active project and returns its SID
 and name. Duplicate names are allowed. Each successful call, including a retry,
-creates another list. Use the returned SID with `todos create --list`.
+creates another list. Use the returned SID with `tasks create --list`.
 
 `--project` accepts a project SID. Commands resolve it in this order:
 the `--project` flag, then `NEETOPLANNER_PROJECT`, then the default saved per
