@@ -99,7 +99,7 @@ func TestTasksCreate_PostsRequestedFields(t *testing.T) {
 		}
 		want := map[string]map[string]any{"task": {
 			"name": "Promote the changelog", "description": description,
-			"list_sid": "backlog-sid", "external_idempotency_key": "engage:post-1",
+			"section_sid": "backlog-sid", "external_idempotency_key": "engage:post-1",
 			"assignee_email": "member@example.com", "due_date": "2028-02-29",
 			"tags": []any{"Urgent", "Review"},
 		}}
@@ -112,7 +112,7 @@ func TestTasksCreate_PostsRequestedFields(t *testing.T) {
 	})
 
 	root.SetArgs([]string{"tasks", "create", "Promote the changelog", "--project", "marpro-sid",
-		"--list", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1",
+		"--section", "backlog-sid", "--description", description, "--idempotency-key", "engage:post-1",
 		"--assignee", "member@example.com", "--due", "2028-02-29", "--tags", "Urgent,Review", "--json"})
 	if err := root.Execute(); err != nil {
 		t.Fatal(err)

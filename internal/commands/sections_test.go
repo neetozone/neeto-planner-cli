@@ -10,7 +10,7 @@ import (
 	"github.com/neetozone/neeto-planner-cli/internal/config"
 )
 
-func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
+func TestSectionsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 	tests := []struct {
 		name    string
 		flag    string
@@ -26,9 +26,9 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			requests := 0
-			root, out := testResourceCommand(t, "lists", "create", func(w http.ResponseWriter, r *http.Request) {
+			root, out := testResourceCommand(t, "sections", "create", func(w http.ResponseWriter, r *http.Request) {
 				requests++
-				if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/"+tt.project+"/lists" {
+				if r.Method != http.MethodPost || r.URL.Path != "/api/external/v1/projects/"+tt.project+"/sections" {
 					t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 				}
 				if r.Header.Get("Session-Token") != "test-session-token" || r.Header.Get("Content-Type") != "application/json" {
@@ -38,12 +38,12 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 					t.Fatal(err)
 				}
-				if !reflect.DeepEqual(body, map[string]map[string]string{"list": {"name": "Backlog"}}) {
+				if !reflect.DeepEqual(body, map[string]map[string]string{"section": {"name": "Backlog"}}) {
 					t.Errorf("unexpected payload: %#v", body)
 				}
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusCreated)
-				_, _ = w.Write([]byte(`{"sid":"list-sid","name":"Backlog","url":"https://acme.neetoplanner.test/list-sid"}`))
+				_, _ = w.Write([]byte(`{"sid":"section-sid","name":"Backlog","url":"https://acme.neetoplanner.test/section-sid"}`))
 			})
 			t.Setenv(projectEnvVar, tt.env)
 			store := &config.Store{}
@@ -51,7 +51,7 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 			if err := config.Save(configDir, store); err != nil {
 				t.Fatal(err)
 			}
-			args := []string{"lists", "create", "Backlog"}
+			args := []string{"sections", "create", "Backlog"}
 			if tt.flag != "" {
 				args = append(args, "--project", tt.flag)
 			}
@@ -76,33 +76,33 @@ func TestListsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 				if err := json.Unmarshal(out.Bytes(), &result); err != nil {
 					t.Fatal(err)
 				}
-				if result.Data.SID != "list-sid" || result.Data.Name != "Backlog" {
+				if result.Data.SID != "section-sid" || result.Data.Name != "Backlog" {
 					t.Errorf("unexpected result: %+v", result)
 				}
 			case "--quiet":
-				if out.String() != "list-sid\n" {
+				if out.String() != "section-sid\n" {
 					t.Errorf("quiet output = %q", out.String())
 				}
 			}
-			if tt.output == "" && !strings.Contains(out.String(), "neetoplanner lists list --project saved-project") {
-				t.Errorf("output missing list breadcrumb: %q", out.String())
+			if tt.output == "" && !strings.Contains(out.String(), "neetoplanner sections list --project saved-project") {
+				t.Errorf("output missing section breadcrumb: %q", out.String())
 			}
 		})
 	}
 }
 
-func TestListsCreate_RequiresANameAndProjectBeforeRequest(t *testing.T) {
+func TestSectionsCreate_RequiresANameAndProjectBeforeRequest(t *testing.T) {
 	tests := []struct {
 		args      []string
 		wantError string
 	}{
-		{[]string{"lists", "create"}, "accepts 1 arg(s), received 0"},
-		{[]string{"lists", "create", "one", "two"}, "accepts 1 arg(s), received 2"},
-		{[]string{"lists", "create", "Backlog"}, "No project specified"},
+		{[]string{"sections", "create"}, "accepts 1 arg(s), received 0"},
+		{[]string{"sections", "create", "one", "two"}, "accepts 1 arg(s), received 2"},
+		{[]string{"sections", "create", "Backlog"}, "No project specified"},
 	}
 	for _, tt := range tests {
 		t.Run(strings.Join(tt.args, " "), func(t *testing.T) {
-			root, out := testResourceCommand(t, "lists", "create", func(w http.ResponseWriter, r *http.Request) {
+			root, out := testResourceCommand(t, "sections", "create", func(w http.ResponseWriter, r *http.Request) {
 				t.Error("invalid arguments should not send a request")
 			})
 			root.SetArgs(tt.args)
@@ -116,16 +116,16 @@ func TestListsCreate_RequiresANameAndProjectBeforeRequest(t *testing.T) {
 	}
 }
 
-func TestListsCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
+func TestSectionsCreate_ReturnsAPIErrorsWithoutSuccessOutput(t *testing.T) {
 	for _, status := range []int{http.StatusForbidden, http.StatusNotFound, http.StatusUnprocessableEntity} {
 		t.Run(http.StatusText(status), func(t *testing.T) {
-			root, out := testResourceCommand(t, "lists", "create", func(w http.ResponseWriter, r *http.Request) {
+			root, out := testResourceCommand(t, "sections", "create", func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(status)
-				_, _ = w.Write([]byte(`{"error":"Cannot create this list"}`))
+				_, _ = w.Write([]byte(`{"error":"Cannot create this section"}`))
 			})
-			root.SetArgs([]string{"lists", "create", "Backlog", "--project", "project-sid"})
+			root.SetArgs([]string{"sections", "create", "Backlog", "--project", "project-sid"})
 			err := root.Execute()
-			if err == nil || !strings.Contains(err.Error(), "Cannot create this list") {
+			if err == nil || !strings.Contains(err.Error(), "Cannot create this section") {
 				t.Errorf("expected API error, got %v", err)
 			}
 			if out.Len() != 0 {

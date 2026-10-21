@@ -1,10 +1,10 @@
 # NeetoPlanner CLI
 
-A command-line interface for NeetoPlanner. Manage projects, lists and tasks, and set per-workspace defaults.
+A command-line interface for NeetoPlanner. Manage projects, sections and tasks, and set per-workspace defaults.
 
 > **Status:** `login`, `logout`, `whoami`, `doctor`, `version`, `commands`,
-> `completion` and `setup` work. `projects list`, `lists list`, `lists show`,
-> `lists create`, and `tasks list/create/update` use the external API.
+> `completion` and `setup` work. `projects list`, `sections list`, `sections show`,
+> `sections create`, and `tasks list/create/update` use the external API.
 > `tasks show` and `tasks done` remain stubs. Track
 > [neeto-planner-web#12675](https://github.com/neetozone/neeto-planner-web/issues/12675).
 
@@ -12,11 +12,11 @@ A command-line interface for NeetoPlanner. Manage projects, lists and tasks, and
 
 ```
 neetoplanner projects list
-neetoplanner lists list [--project <p>]
-neetoplanner lists create "Backlog" [--project <p>]
-neetoplanner tasks list [--project <p>] [--list <l>]
+neetoplanner sections list [--project <p>]
+neetoplanner sections create "Backlog" [--project <p>]
+neetoplanner tasks list [--project <p>]
 neetoplanner tasks show <id>
-neetoplanner tasks create "Ship it" [--project <p>] [--list <l>]
+neetoplanner tasks create "Ship it" [--project <p>] [--section <s>]
 neetoplanner tasks update <id> [--title ...]
 neetoplanner tasks done <id>
 neetoplanner config set default-project <p>
@@ -26,9 +26,14 @@ The `tasks` commands replace the earlier `todos` commands, following NeetoPlanne
 rename of todos to tasks. Scripts that call `neetoplanner todos ...` need to use
 `neetoplanner tasks ...` instead.
 
-`lists create` adds a list (board column) to an active project and returns its SID
-and name. Duplicate names are allowed. Each successful call, including a retry,
-creates another list. Use the returned SID with `tasks create --list`.
+The `sections` commands replace the earlier `lists` commands, following
+NeetoPlanner's rename of lists to sections. Scripts that call
+`neetoplanner lists ...` need to use `neetoplanner sections ...` instead, and
+`tasks create --list` is now `tasks create --section`.
+
+`sections create` adds a section (board column) to an active project and returns its
+SID and name. Duplicate names are allowed. Each successful call, including a retry,
+creates another section. Use the returned SID with `tasks create --section`.
 
 `--project` accepts a project SID. Commands resolve it in this order:
 the `--project` flag, then `NEETOPLANNER_PROJECT`, then the default saved per

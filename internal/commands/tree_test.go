@@ -42,8 +42,8 @@ func findCommand(root *cobra.Command, path ...string) *cobra.Command {
 func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 	paths := [][]string{
 		{"projects", "list"},
-		{"lists", "list"},
-		{"lists", "create"},
+		{"sections", "list"},
+		{"sections", "create"},
 		{"tasks", "list"},
 		{"tasks", "show"},
 		{"tasks", "create"},
@@ -62,8 +62,8 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 
 func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 	paths := [][]string{
-		{"lists", "list"},
-		{"lists", "create"},
+		{"sections", "list"},
+		{"sections", "create"},
 		{"tasks", "list"},
 		{"tasks", "create"},
 	}

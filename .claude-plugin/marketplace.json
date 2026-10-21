@@ -8,7 +8,7 @@
     {
       "name": "neetoplanner",
       "source": "./",
-      "description": "manage projects, lists and tasks from the terminal"
+      "description": "manage projects, sections and tasks from the terminal"
     }
   ]
 }

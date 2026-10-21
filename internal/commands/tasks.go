@@ -37,8 +37,8 @@ var tasksListCmd = &cobra.Command{
 
 		breadcrumbs := []output.Breadcrumb{
 			{Label: "List projects", Command: "neetoplanner projects ls"},
-			{Label: "List lists", Command: "neetoplanner lists ls"},
-			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
+			{Label: "List sections", Command: "neetoplanner sections ls"},
+			{Label: "Show section", Command: "neetoplanner sections show <sid>"},
 		}
 
 		printList(data, "tasks", breadcrumbs)
@@ -62,7 +62,7 @@ var tasksCreateCmd = &cobra.Command{
 	Use:     "create <title>",
 	Short:   "Create a task",
 	Args:    cobra.ExactArgs(1),
-	Example: "  $ neetoplanner tasks create \"Promote the changelog\" --project <project-sid> --list <list-sid>",
+	Example: "  $ neetoplanner tasks create \"Promote the changelog\" --project <project-sid> --section <section-sid>",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := getClient(cmd)
 		if err != nil {
@@ -76,7 +76,7 @@ var tasksCreateCmd = &cobra.Command{
 		task := map[string]interface{}{"name": args[0]}
 		for flag, field := range map[string]string{
 			"description":     "description",
-			"list":            "list_sid",
+			"section":         "section_sid",
 			"idempotency-key": "external_idempotency_key",
 			"assignee":        "assignee_email",
 			"due":             "due_date",
@@ -153,8 +153,8 @@ var tasksUpdateCmd = &cobra.Command{
 
 		breadcrumbs := []output.Breadcrumb{
 			{Label: "List projects", Command: "neetoplanner projects ls"},
-			{Label: "List lists", Command: "neetoplanner lists ls"},
-			{Label: "Show list", Command: "neetoplanner lists show <sid>"},
+			{Label: "List sections", Command: "neetoplanner sections ls"},
+			{Label: "Show section", Command: "neetoplanner sections show <sid>"},
 		}
 
 		printResource(data, breadcrumbs)
@@ -179,7 +179,7 @@ func init() {
 	tasksListCmd.Flags().Bool("pending", false, "Show the pending tasks")
 
 	addProjectFlag(tasksCreateCmd)
-	addListFlag(tasksCreateCmd)
+	addSectionFlag(tasksCreateCmd)
 	tasksCreateCmd.Flags().String("description", "", "Task description")
 	tasksCreateCmd.Flags().String("idempotency-key", "", "Stable event key to reuse when retrying creation")
 	tasksCreateCmd.Flags().String("assignee", "", "Email of the project member to assign")
