@@ -44,11 +44,11 @@ func TestCommandTree_CoversEpicEndpoints(t *testing.T) {
 		{"projects", "list"},
 		{"lists", "list"},
 		{"lists", "create"},
-		{"todos", "list"},
-		{"todos", "show"},
-		{"todos", "create"},
-		{"todos", "update"},
-		{"todos", "done"},
+		{"tasks", "list"},
+		{"tasks", "show"},
+		{"tasks", "create"},
+		{"tasks", "update"},
+		{"tasks", "done"},
 		{"config", "set"},
 	}
 
@@ -64,8 +64,8 @@ func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 	paths := [][]string{
 		{"lists", "list"},
 		{"lists", "create"},
-		{"todos", "list"},
-		{"todos", "create"},
+		{"tasks", "list"},
+		{"tasks", "create"},
 	}
 
 	root := testRoot(t)
@@ -80,15 +80,15 @@ func TestScopedCommands_HaveProjectFlag(t *testing.T) {
 	}
 }
 
-func TestTodosCreate_TakesPositionalTitle(t *testing.T) {
-	cmd := findCommand(testRoot(t), "todos", "create")
+func TestTasksCreate_TakesPositionalTitle(t *testing.T) {
+	cmd := findCommand(testRoot(t), "tasks", "create")
 	if cmd == nil {
-		t.Fatal("todos create is not registered")
+		t.Fatal("tasks create is not registered")
 	}
 	if err := cmd.Args(cmd, []string{}); err == nil {
-		t.Error("todos create should reject a missing title")
+		t.Error("tasks create should reject a missing title")
 	}
 	if err := cmd.Args(cmd, []string{"Ship the CLI"}); err != nil {
-		t.Errorf("todos create should accept a single positional title, got: %v", err)
+		t.Errorf("tasks create should accept a single positional title, got: %v", err)
 	}
 }

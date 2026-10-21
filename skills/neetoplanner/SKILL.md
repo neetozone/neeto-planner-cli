@@ -130,9 +130,9 @@ stderr. Common errors the agent should expect:
 ## Product-specific commands
 
 The resource commands are registered with their final names, flags and help
-text. `projects list`, `lists list`, `lists show`, `lists create`, `todos list`,
-`todos create`, `todos update` and `config set default-project` call the API.
-`todos show` and `todos done` are not wired up yet — each exits non-zero with a
+text. `projects list`, `lists list`, `lists show`, `lists create`, `tasks list`,
+`tasks create`, `tasks update` and `config set default-project` call the API.
+`tasks show` and `tasks done` are not wired up yet — each exits non-zero with a
 message naming the endpoint it waits on. Do not treat those failures as bugs
 or try to work around them.
 
@@ -141,17 +141,17 @@ neetoplanner projects list
 neetoplanner lists list [--project <p>]
 neetoplanner lists show <sid> [--project <p>]
 neetoplanner lists create "Backlog" [--project <p>]
-neetoplanner todos list [--project <p>]
-neetoplanner todos show <id>
-neetoplanner todos create "Ship it" [--project <p>] [--list <l>]
-neetoplanner todos update <id> [--title ...]
-neetoplanner todos done <id>
+neetoplanner tasks list [--project <p>]
+neetoplanner tasks show <id>
+neetoplanner tasks create "Ship it" [--project <p>] [--list <l>]
+neetoplanner tasks update <id> [--title ...]
+neetoplanner tasks done <id>
 neetoplanner config set default-project <p>
 ```
 
 `lists create` adds a list (board column) to an active project. Duplicate names
 are allowed. Each successful call, including a retry, creates another list.
-Use the returned SID with `todos create --list`; `--quiet` prints only that SID.
+Use the returned SID with `tasks create --list`; `--quiet` prints only that SID.
 
 `--project` takes a project SID, resolved as: `--project` flag, then
 `NEETOPLANNER_PROJECT`, then the per-subdomain default from
