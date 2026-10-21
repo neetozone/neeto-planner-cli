@@ -37,8 +37,8 @@ var tasksListCmd = &cobra.Command{
 
 		breadcrumbs := []output.Breadcrumb{
 			{Label: "List projects", Command: "neetoplanner projects ls"},
-			{Label: "List sections", Command: "neetoplanner sections ls"},
-			{Label: "Show section", Command: "neetoplanner sections show <sid>"},
+			{Label: "List sections", Command: fmt.Sprintf("neetoplanner sections ls --project %s", projectSid)},
+			{Label: "Show section", Command: fmt.Sprintf("neetoplanner sections show <sid> --project %s", projectSid)},
 		}
 
 		printList(data, "tasks", breadcrumbs)
@@ -153,8 +153,8 @@ var tasksUpdateCmd = &cobra.Command{
 
 		breadcrumbs := []output.Breadcrumb{
 			{Label: "List projects", Command: "neetoplanner projects ls"},
-			{Label: "List sections", Command: "neetoplanner sections ls"},
-			{Label: "Show section", Command: "neetoplanner sections show <sid>"},
+			{Label: "List sections", Command: fmt.Sprintf("neetoplanner sections ls --project %s", projectSid)},
+			{Label: "Show section", Command: fmt.Sprintf("neetoplanner sections show <sid> --project %s", projectSid)},
 		}
 
 		printResource(data, breadcrumbs)

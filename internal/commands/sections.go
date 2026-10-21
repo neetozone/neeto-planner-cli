@@ -72,7 +72,7 @@ var sectionsShowCmd = &cobra.Command{
 
 		breadcrumbs := []output.Breadcrumb{
 			{Label: "List projects", Command: "neetoplanner projects ls"},
-			{Label: "List sections", Command: "neetoplanner sections ls"},
+			{Label: "List sections", Command: fmt.Sprintf("neetoplanner sections ls --project %s", projectSid)},
 		}
 
 		printResource(data, breadcrumbs)
