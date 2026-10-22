@@ -62,6 +62,6 @@ func addProjectFlag(cmd *cobra.Command) {
 	cmd.Flags().String("project", "", "Project SID (defaults to "+projectEnvVar+" or the saved default)")
 }
 
-func addListFlag(cmd *cobra.Command) {
-	cmd.Flags().String("list", "", "List SID")
+func addSectionFlag(cmd *cobra.Command) {
+	cmd.Flags().String("section", "", "Section SID")
 }

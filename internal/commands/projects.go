@@ -32,7 +32,7 @@ var projectsListCmd = &cobra.Command{
 		}
 
 		breadcrumbs := []output.Breadcrumb{
-			{Label: "List lists in a project", Command: "neetoplanner lists ls --project <sid>"},
+			{Label: "List sections in a project", Command: "neetoplanner sections ls --project <sid>"},
 		}
 
 		printList(data, "projects", breadcrumbs)
