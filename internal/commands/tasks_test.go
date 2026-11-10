@@ -2,7 +2,8 @@ package commands
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/neetozone/neeto-cli-commons/auth"
+	"github.com/neetozone/neeto-cli-commons/v2/auth"
 	"github.com/neetozone/neeto-planner-cli/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -94,7 +95,7 @@ func TestTasksCreate_PostsRequestedFields(t *testing.T) {
 			t.Error("request should contain JSON")
 		}
 		var body map[string]map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(r.Body, &body); err != nil {
 			t.Errorf("decode body: %v", err)
 		}
 		want := map[string]map[string]any{"task": {
@@ -138,7 +139,7 @@ func TestTasksCreate_UsesEnvironmentProjectAndPrintsQuietIdentifier(t *testing.T
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		var body map[string]map[string]string
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(r.Body, &body); err != nil {
 			t.Errorf("decode body: %v", err)
 		}
 		if !reflect.DeepEqual(body, map[string]map[string]string{"task": {"name": "Ship it"}}) {
@@ -257,7 +258,7 @@ func TestTasksUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 					t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 				}
 				var body map[string]map[string]any
-				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				if err := json.UnmarshalRead(r.Body, &body); err != nil {
 					t.Errorf("decode body: %v", err)
 				}
 				if !reflect.DeepEqual(body, map[string]map[string]any{"task": tt.want}) {
@@ -273,7 +274,7 @@ func TestTasksUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 			if requests != 1 {
 				t.Errorf("requests = %d, want 1", requests)
 			}
-			if !json.Valid(out.Bytes()) {
+			if !jsontext.Value(out.Bytes()).IsValid() {
 				t.Errorf("output is not JSON: %q", out.String())
 			}
 		})
@@ -283,7 +284,7 @@ func TestTasksUpdate_SendsOnlyRequestedChanges(t *testing.T) {
 func TestTasksCreate_SendsEmptyTags(t *testing.T) {
 	root, _ := testTasksCommand(t, "create", func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]map[string]any
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		if err := json.UnmarshalRead(r.Body, &body); err != nil {
 			t.Fatal(err)
 		}
 		want := map[string]map[string]any{"task": {"name": "Ship it", "tags": []any{}}}

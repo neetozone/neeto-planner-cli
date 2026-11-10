@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
+	json "encoding/json/v2"
 	"net/http"
 	"reflect"
 	"strings"
@@ -35,7 +35,7 @@ func TestSectionsCreate_ProjectPrecedenceAndOutputs(t *testing.T) {
 					t.Error("missing authentication or JSON header")
 				}
 				var body map[string]map[string]string
-				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				if err := json.UnmarshalRead(r.Body, &body); err != nil {
 					t.Fatal(err)
 				}
 				if !reflect.DeepEqual(body, map[string]map[string]string{"section": {"name": "Backlog"}}) {

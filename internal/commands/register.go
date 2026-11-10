@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"fmt"
 	"net/url"
 
-	"github.com/neetozone/neeto-cli-commons/cli"
-	"github.com/neetozone/neeto-cli-commons/client"
-	"github.com/neetozone/neeto-cli-commons/output"
+	"github.com/neetozone/neeto-cli-commons/v2/cli"
+	"github.com/neetozone/neeto-cli-commons/v2/client"
+	"github.com/neetozone/neeto-cli-commons/v2/output"
 	"github.com/spf13/cobra"
 )
 
@@ -29,15 +30,15 @@ func Register(a *cli.App) {
 
 func getClient(cmd *cobra.Command) (*client.Client, error) { return app.Client(cmd) }
 
-func printList(data json.RawMessage, resourceKey string, breadcrumbs []output.Breadcrumb) {
+func printList(data jsontext.Value, resourceKey string, breadcrumbs []output.Breadcrumb) {
 	app.PrintList(data, resourceKey, breadcrumbs)
 }
 
-func printResource(data json.RawMessage, breadcrumbs []output.Breadcrumb) {
+func printResource(data jsontext.Value, breadcrumbs []output.Breadcrumb) {
 	app.PrintResource(data, breadcrumbs)
 }
 
-func printActionResult(data json.RawMessage, breadcrumbs []output.Breadcrumb) {
+func printActionResult(data jsontext.Value, breadcrumbs []output.Breadcrumb) {
 	app.PrintActionResult(data, breadcrumbs)
 }
 
@@ -45,9 +46,9 @@ func paginationParams(cmd *cobra.Command) url.Values { return app.PaginationPara
 
 func addPaginationFlags(cmd *cobra.Command) { cli.AddPaginationFlags(0, cmd) }
 
-func printMetadata(data json.RawMessage) {
+func printMetadata(data jsontext.Value) {
 	type Metadata struct {
-		Content json.RawMessage `json:"metadata"`
+		Content jsontext.Value `json:"metadata"`
 	}
 	var metadata Metadata
 	if err := json.Unmarshal(data, &metadata); err != nil {
@@ -59,11 +60,11 @@ func printMetadata(data json.RawMessage) {
 	}
 }
 
-func wrapField(name string, val json.RawMessage) (json.RawMessage, error) {
+func wrapField(name string, val jsontext.Value) (jsontext.Value, error) {
 	if len(val) == 0 {
 		return nil, fmt.Errorf("no value present")
 	}
-	wrapped, err := json.Marshal(map[string]json.RawMessage{name: val})
+	wrapped, err := json.Marshal(map[string]jsontext.Value{name: val}, output.JSONOptions)
 	if err != nil {
 		return nil, err
 	}

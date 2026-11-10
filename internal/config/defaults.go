@@ -1,10 +1,13 @@
 package config
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/neetozone/neeto-cli-commons/v2/output"
 )
 
 const defaultsFile = "defaults.json"
@@ -72,7 +75,7 @@ func Save(configDir DirFunc, store *Store) error {
 		return fmt.Errorf("Could not create config directory: %w", err)
 	}
 
-	data, err := json.MarshalIndent(store, "", "  ")
+	data, err := json.Marshal(store, output.JSONOptions, jsontext.WithIndent("  "))
 	if err != nil {
 		return fmt.Errorf("Could not serialize preferences: %w", err)
 	}
